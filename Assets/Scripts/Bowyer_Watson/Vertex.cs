@@ -17,7 +17,13 @@ namespace bowyer{
         }
         public bool Equals(Vertex other)
         {
-            return x == other.x && y == other.y;
+            /*
+            //show detail
+            Debug.Log($"{this} {other}");
+            Debug.Log(((Math.Abs(x) - Math.Abs(other.x)) < double.Epsilon));
+            Debug.Log(((Math.Abs(y) - Math.Abs(other.y)) < double.Epsilon));
+            */
+            return (Math.Abs(Math.Abs(x) - Math.Abs(other.x)) < double.Epsilon) && (Math.Abs(Math.Abs(y) - Math.Abs(other.y)) < double.Epsilon);
         }
         public static Vertex operator +(Vertex left,Vertex right)
         {
@@ -34,6 +40,10 @@ namespace bowyer{
         public static Vertex operator /(Vertex left, Vertex right)
         {
             return new Vertex(left.x / right.x, left.y / right.y);
+        }
+        public override string ToString()
+        {
+            return $"vertext x : {x}   y: {y} ";
         }
     }
 }

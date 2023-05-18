@@ -35,29 +35,5 @@ namespace bowyer
 
             return (bx - ax) * (cy - ay) - (cx - ax) * (by - ay);
         }
-        public static bool inCircle2(Vertex a, Vertex b, Vertex c, Vertex d)
-        {
-            Vertex ad = a - d;
-            Vertex bd = b - d;
-            Vertex cd = c - d;
-            // result > 0 in circle
-            // result = 0 on circle
-            // result < 0 out circle
-            double result = (ad.x * ad.x + ad.y * ad.y) * (bd.x * cd.y - cd.x * bd.y) -
-                (bd.x * bd.x + bd.y * bd.y) * (ad.x * cd.y - cd.x * ad.y) +
-                (cd.x * cd.x + cd.y * cd.y) * (ad.x * bd.y - bd.x * ad.y);
-            if(ccw2(a,b,c)>0)
-                return result > 0;
-            else return result < 0;
-        }
-        public static double ccw2(Vertex a, Vertex b, Vertex c)
-        {
-            Vertex ca = c - a;
-            Vertex ba = b - a;
-            // result > 0 반시계방향
-            // result < 0 시계방향
-            // result = 0 평행
-            return (ba.x * ca.y) - (ca.x * ba.y);
-        }
     }
 }

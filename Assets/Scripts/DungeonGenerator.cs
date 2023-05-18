@@ -2,100 +2,246 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
+using bowyer;
+using DelaunatorSharp;
+using DelaunatorSharp.Unity.Extensions;
 
 public class DungeonGenerator : MonoBehaviour
 {
-
-    List<Room> pos=new List<Room>();
+    //todo 삼각분할의 외곽선 한 곳만 안 이어진채로 나옴. 확인필요
+    List<Room> pos = new List<Room>();
     int mytilesize = 2;
     [SerializeField]
     GameObject floorObject;
 
-    bool start = true;
+
+    [SerializeField]
+    bool ShowLibFlag = false;
+    [SerializeField]
+    bool ShowMyLibFlag = false;
+
+    Delaunator test;
+    bowyer_watson bowyer = new bowyer_watson();
     // Start is called before the first frame update
     void Start()
     {
         
-/*        for(int i = 0; i < 2; i++)
+        
+        //library code
+        testRoomCreate(Vector2.one * 12, 4);
+        //createRandomCase(10);
+        resetRoomPosition();
+        spreateRoom();
+        testMyLib();
+        showAnser();
+        
+        
+
+    }
+    void createRandomCase(int count)
+    {
+        for (int i = 0; i < count; i++)
         {
             Room room = new Room(getRandomPointinCircle(1) * UnityEngine.Random.Range(-10, 10));
             room.size.x = 2;
             room.size.y = 2;
-            room.x = getPixelPoint(room.x, (int)(room.size.x*2));
-            room.y = getPixelPoint(room.y, (int)(room.size.y*2));
+            room.x = getPixelPoint(room.x, (int)(room.size.x * 2));
+            room.y = getPixelPoint(room.y, (int)(room.size.y * 2));
             pos.Add(room);
-            
-        }*/
 
-        int space=4;
-        Room room;
-        room = new Room(new Vector2(8,8));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        room = new Room(new Vector2(8, 8 + space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        
-        room = new Room(new Vector2(8, 8 - space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        room = new Room(new Vector2(8 + space, 8));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        room = new Room(new Vector2(8 - space, 8));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        room = new Room(new Vector2(8 + space, 8 + space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        room = new Room(new Vector2(8 - space, 8 - space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        room = new Room(new Vector2(8 - space, 8 + space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        room = new Room(new Vector2(8 + space, 8 - space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-
-
-        for (int i=0;i<pos.Count;i++)
+        }
+    }
+    void resetRoomPosition()
+    {
+        for (int i = 0; i < pos.Count; i++)
         {
             pos[i].gameObjects = createRectangleRoom(pos[i].size, mytilesize);
             pos[i].gameObjects[0].transform.position = pos[i].position;
         }
-        print("result "+isOverLappedAnyRoom());
-        //spreateRoom();
     }
+    void testMyLib()
+    {
+        ShowMyLibFlag = true;
+        for (int i = 0; i < pos.Count; i++)
+        {
+            bowyer.vertices.Add(new Vertex(pos[i].x, pos[i].y));
+        }
+        bowyer.main();
+    }
+    void showAnser()
+    {
+        //library code
+        List<IPoint> dd = new List<IPoint>();
+        for (int i = 0; i < pos.Count; i++)
+        {
+            dd.Add(new Point(pos[i].x, pos[i].y));
+            bowyer.vertices.Add(new Vertex(pos[i].x, pos[i].y));
+        }
+        test = new Delaunator(dd.ToArray());
+    }
+
+    void testRoomCreate(Vector2 mainpos, int space)
+    {
+        Room room;
+        room = new Room(mainpos);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos + Vector2.up * space);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos + Vector2.right * space);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos + Vector2.down * space);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos + Vector2.left * space);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        
+        room = new Room(mainpos + Vector2.one * space);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos - Vector2.one * space);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos + (Vector2.left * space) + (Vector2.up * space));
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+
+    }
+    /*
     private void Update()
     {
-        if(start)
+        if (start)
         {
             StartCoroutine(spreateRoom());
             start = false;
         }
-       
-        
+
+
+    }*/
+
+    Vector2 v1, v2, v3,min,max;
+
+
+    void getSuperTriangle(List<Room> mypos)
+    {
+        double minx = double.MaxValue, miny = double.MaxValue, maxx = double.MinValue, maxy = double.MinValue;
+        for (int i = 0; i < mypos.Count; i++)
+        {
+            if (minx > mypos[i].x)
+            {
+                minx = mypos[i].x;
+            }
+            if (miny > mypos[i].y)
+            {
+                miny = mypos[i].y;
+            }
+            if (maxx < mypos[i].x)
+            {
+                maxx = mypos[i].x;
+            }
+            if (maxy < mypos[i].y)
+            {
+                maxy = mypos[i].y;
+            }
+        }
+        minx += -10;
+        maxx += 10;
+        miny += -10;
+        maxy += 10;
+        min.x = (float)minx;
+        min.y = (float)miny;
+        max.x = (float)maxx;
+        max.y = (float)maxy;
+        double width = (maxx - minx)*2;
+        double height = (maxy - miny)*2;
+        v1 = new Vector2((float)minx, (float)miny);
+        v2 = new Vector2((float)minx, (float)(min.y + height));
+        v3 = new Vector2((float)(width + min.x), (float)miny);
+        //print($"{min.x}  {max.x} {maxx - minx} {width} {maxx + width}");
     }
-    IEnumerator spreateRoom()
+    public Vector2 Vertex2vector(Vertex vertex)
+    {
+        return new Vector2((float)vertex.x, (float)vertex.y);
+    }
+    public void OnDrawGizmos()
+    {
+        if (ShowMyLibFlag)
+        {
+            
+            Gizmos.color = Color.white;
+            if(bowyer.super!=null)
+            {
+                Gizmos.DrawLine(Vertex2vector(bowyer.super.v1), Vertex2vector(bowyer.super.v2));
+                Gizmos.DrawLine(Vertex2vector(bowyer.super.v2), Vertex2vector(bowyer.super.v3));
+                Gizmos.DrawLine(Vertex2vector(bowyer.super.v3), Vertex2vector(bowyer.super.v1));
+            }
+            if (bowyer.triangles.Count > 0)
+            {
+                foreach (bowyer.Triangle triangle in bowyer.triangles)
+                {
+                    Gizmos.DrawLine(Vertex2vector(triangle.v1), Vertex2vector(triangle.v2));
+                    Gizmos.DrawLine(Vertex2vector(triangle.v2), Vertex2vector(triangle.v3));
+                    Gizmos.DrawLine(Vertex2vector(triangle.v3), Vertex2vector(triangle.v1));
+                }
+            }
+            /*
+            Gizmos.DrawLine(v1, v2);
+            Gizmos.DrawLine(v2, v3);
+            Gizmos.DrawLine(v3, v1);
+            Gizmos.DrawCube(min, Vector3.one);
+            Gizmos.DrawCube(max, Vector3.one);
+            Gizmos.DrawLine(max, new Vector3(max.x,min.y,0));
+            Gizmos.DrawLine(max, new Vector3(min.x, max.y, 0));*/
+            
+            
+        }
+        
+        //library show
+        if (ShowLibFlag)
+        {
+            Gizmos.color = Color.blue;
+            test.ForEachTriangle((edge) =>
+            {
+                for (int i = 0; i < edge.Points.ToVectors2().Length; i++)
+                {
+                    Gizmos.DrawLine(edge.Points.ToVectors2()[0], edge.Points.ToVectors2()[1]);
+                    Gizmos.DrawLine(edge.Points.ToVectors2()[1], edge.Points.ToVectors2()[2]);
+                    Gizmos.DrawLine(edge.Points.ToVectors2()[2], edge.Points.ToVectors2()[0]);
+
+                }
+
+            });
+        }
+    }
+    void spreateRoom()
     {
         int i = 0;
+        List<Vector2> beforepos=new List<Vector2>();
         while(isOverLappedAnyRoom())
         {
             i++;
-            if (i == 10)
+            
+            if (i > pos.Count * pos.Count)
             {
-                print("dd");
+                Debug.LogError("적당한 위치를 찾을 수 없음");
                 break;
             }
             for (int current = 0; current < pos.Count; current++)
@@ -107,16 +253,33 @@ public class DungeonGenerator : MonoBehaviour
                     Vector2 direction = (pos[other].position - pos[current].position).normalized;
                     if (direction.Equals(Vector2.zero))
                     {
-                        direction = Vector2.right;
+                        
+                        direction = changeOverlapPos();
                     }
                     direction.x = Mathf.RoundToInt(direction.x);
                     direction.y = Mathf.RoundToInt(direction.y);
                     pos[other].Move(direction, mytilesize);
-                    print($"direction {direction} currnet {pos[current].position} other {pos[other].position}");
-                    yield return new WaitForSeconds(1);
+                    pos[current].Move(-direction, mytilesize);
+                    //print($"direction {direction} currnet {pos[current].position} other {pos[other].position}");
                 }
             }
         }
+        //getSuperTriangle(pos);
+
+    }
+    private Vector2 changeOverlapPos()
+    {
+        int x = UnityEngine.Random.Range(-1, 2);
+        int y = UnityEngine.Random.Range(1, 3);
+        if (x == 0)
+        {
+            if (y == 1) y = -y;
+        }
+        else
+        {
+            y -= 1;
+        }
+        return new Vector2(x, y);
     }
     bool isOverLappedAnyRoom()
     {
@@ -130,7 +293,7 @@ public class DungeonGenerator : MonoBehaviour
                 }
                 if (pos[current].overlap(pos[other], mytilesize))
                 {
-                    print($"overlap {pos[current].position} and {pos[other].position}");
+                    //print($"overlap {pos[current].position} and {pos[other].position}");
                     return true;
                 }
             }
@@ -148,7 +311,7 @@ public class DungeonGenerator : MonoBehaviour
             for(int y = 0; y < size.y; y++)
             {
                 GameObject roomobj = Instantiate(floorObject,parent.transform);
-                roomobj.transform.localPosition = new Vector2(x*tilesize,y*tilesize);
+                roomobj.transform.localPosition = new Vector2(x+0.5f-(0.5f*size.x),y + 0.5f - (0.5f * size.y))*tilesize;
                 room.Add(roomobj);
             }
         }
