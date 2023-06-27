@@ -8,10 +8,12 @@ using UnityEngine;
 using bowyer;
 using DelaunatorSharp;
 using DelaunatorSharp.Unity.Extensions;
+using System.Threading;
 
 public class DungeonGenerator : MonoBehaviour
 {
     //todo 삼각분할의 외곽선 한 곳만 안 이어진채로 나옴. 확인필요
+    //note ccw에 문제가 있음. 뒤집어 줘야 할때 뒤집지 못해서 위와 같은 문제가 발생하는 듯
     List<Room> pos = new List<Room>();
     int mytilesize = 2;
     [SerializeField]
@@ -22,6 +24,13 @@ public class DungeonGenerator : MonoBehaviour
     bool ShowLibFlag = false;
     [SerializeField]
     bool ShowMyLibFlag = false;
+
+    //알고리즘 진행상황 확인 코드
+    List<List<bowyer.Triangle>> ProcessLog = new List<List<bowyer.Triangle>>();
+    [SerializeField]
+    bool ShowProcess = false;
+    float ProcessWaitTime = 1;
+    int ProcessLogIndex = 0;
 
     Delaunator test;
     bowyer_watson bowyer = new bowyer_watson();
@@ -37,7 +46,6 @@ public class DungeonGenerator : MonoBehaviour
         spreateRoom();
         testMyLib();
         showAnser();
-        
         
 
     }
@@ -62,6 +70,9 @@ public class DungeonGenerator : MonoBehaviour
             pos[i].gameObjects[0].transform.position = pos[i].position;
         }
     }
+
+
+    
     void testMyLib()
     {
         ShowMyLibFlag = true;
@@ -69,7 +80,10 @@ public class DungeonGenerator : MonoBehaviour
         {
             bowyer.vertices.Add(new Vertex(pos[i].x, pos[i].y));
         }
-        bowyer.main();
+        bowyer.main((List<bowyer.Triangle> list) =>
+        {
+            ProcessLog.Add(new List<bowyer.Triangle>(list));
+        });
     }
     void showAnser()
     {
@@ -86,10 +100,12 @@ public class DungeonGenerator : MonoBehaviour
     void testRoomCreate(Vector2 mainpos, int space)
     {
         Room room;
+        /*
         room = new Room(mainpos);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+        /*
         room = new Room(mainpos + Vector2.up * space);
         room.size.x = 2;
         room.size.y = 2;
@@ -98,44 +114,56 @@ public class DungeonGenerator : MonoBehaviour
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+        
         room = new Room(mainpos + Vector2.down * space);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+        */
         room = new Room(mainpos + Vector2.left * space);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-        
+        /*
         room = new Room(mainpos + Vector2.one * space);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+        /*
         room = new Room(mainpos - Vector2.one * space);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+
         room = new Room(mainpos + (Vector2.left * space) + (Vector2.up * space));
         room.size.x = 2;
         room.size.y = 2;
-        pos.Add(room);
+        pos.Add(room);*/
         room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
 
+        room = new Room(mainpos + Vector2.left * space*2);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
     }
-    /*
+    
     private void Update()
     {
-        if (start)
+        if (ShowProcess)
         {
-            StartCoroutine(spreateRoom());
-            start = false;
+            ProcessWaitTime-=Time.deltaTime;
+            if (ProcessWaitTime < 0)
+            {
+                ProcessWaitTime = 1;
+                ProcessLogIndex = (ProcessLogIndex+1)%ProcessLog.Count;
+            }
         }
 
 
-    }*/
+    }
 
     Vector2 v1, v2, v3,min,max;
 
@@ -210,10 +238,14 @@ public class DungeonGenerator : MonoBehaviour
             Gizmos.DrawCube(max, Vector3.one);
             Gizmos.DrawLine(max, new Vector3(max.x,min.y,0));
             Gizmos.DrawLine(max, new Vector3(min.x, max.y, 0));*/
-            
-            
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawLine(new Vector3(-6,-2),new Vector3(-6,46));
+            Gizmos.DrawLine(new Vector3(-6, 46), new Vector3(16,8));
+            Gizmos.DrawLine(new Vector3(-6, -2), new Vector3(16, 8));
+
+
         }
-        
+
         //library show
         if (ShowLibFlag)
         {
@@ -229,6 +261,15 @@ public class DungeonGenerator : MonoBehaviour
                 }
 
             });
+        }
+        if (ShowProcess)
+        {
+            foreach (bowyer.Triangle triangle in ProcessLog[ProcessLogIndex])
+            {
+                Gizmos.DrawLine(Vertex2vector(triangle.v1), Vertex2vector(triangle.v2));
+                Gizmos.DrawLine(Vertex2vector(triangle.v2), Vertex2vector(triangle.v3));
+                Gizmos.DrawLine(Vertex2vector(triangle.v3), Vertex2vector(triangle.v1));
+            }
         }
     }
     void spreateRoom()

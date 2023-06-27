@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,22 +13,22 @@ namespace bowyer
         public List<Vertex> vertices = new List<Vertex>();
         public List<Triangle> triangles = new List<Triangle>();
         public Triangle super;
-        bool debug_log = false;
-        public void main()
+        bool debug_log = true;
+        public void main(Action<List<Triangle>> action)
         {
-
+            
             
             Triangle supertriangle = getSuperTriangle(vertices);
             super = supertriangle;
             triangles.Add(supertriangle);
 
-            for (int i = 0, j = 0; i < vertices.Count; i++, j++)
+            for (int i = 0, j = 0; i < vertices.Count&&j<3; i++, j++)
             {
                 if (j > 98)
                 {
                     Debug.LogError("while error");
                 }
-                AddVertex(ref triangles, vertices[i]);
+                AddVertex(ref triangles, vertices[i],action);
                 if (debug_log)
                 {
                     for (int i2 = 0; i2 < triangles.Count; i2++)
@@ -36,8 +37,7 @@ namespace bowyer
                     }
                 }
             }
-
-
+            /*
             for (int i = triangles.Count - 1; i >= 0; i--)
             {
                 Triangle triangle = triangles[i];
@@ -52,8 +52,9 @@ namespace bowyer
                 {
                     Debug.Log($"result {triangles[i2]}");
                 }
-            }
+            }*/
         }
+
         void testEqualEdge()
         {
             Edge t1, t2;
@@ -113,14 +114,14 @@ namespace bowyer
             result.v3 = new Vertex(width + minx, miny);
             return result;
         }
-        void AddVertex(ref List<Triangle> triangle, Vertex vertex)
+        void AddVertex(ref List<Triangle> triangle, Vertex vertex,Action<List<Triangle>> action)
         {
             List<Triangle> tmp = new List<Triangle>();
             if (debug_log)
             {
                 Debug.Log($"triangle count : {triangle.Count}");
             }
-            
+
 
             List<Edge> edges = new List<Edge>();
             foreach (Triangle triangle1 in triangle)
@@ -151,12 +152,14 @@ namespace bowyer
             }
             triangle.Clear();
             triangle = new List<Triangle>(tmp);
+            action(triangle);
             foreach (Edge edge in edges)
             {
                 triangle.Add(new Triangle(edge.v1, edge.v2, vertex));
+                action(triangle);
                 if (debug_log)
                 {
-                    Debug.Log($"add triangle {edge} {new Triangle(edge.v1, edge.v2, vertex)}");
+                    Debug.Log($"add triangle \n now edge {edge} \n setTriangle {new Triangle(edge.v1, edge.v2, vertex)}");
                 }
                 
 
@@ -165,10 +168,35 @@ namespace bowyer
         List<Edge> uniqueEdges(List<Edge> edges)
         {
             List<Edge> results=new List<Edge>();
+            
+            int index=edges.Count-1;
+            bool overlap = false;
+            while (index>-1)
+            {
+                results.Add(edges[index]);
+                edges.RemoveAt(index);
+                index = edges.Count - 1;
+                for (int i=index; i>-1; i--)
+                {
+                    if (results[results.Count - 1].Equals(edges[i]))
+                    {
+                        edges.RemoveAt(i);
+                        overlap = true;
+                    }
+                }
+                if (overlap)
+                {
+                    results.RemoveAt(results.Count - 1);
+                    overlap = false;
+                }
+                index = edges.Count - 1;
+            }
+            /*
             bool unique=true;
             for(int i=0;i<edges.Count;i++)
             {
                 unique = true;
+
                 for(int j = 0; j < edges.Count; j++)
                 {
                     if (i != j && edges[i].Equals(edges[j]))
@@ -186,7 +214,7 @@ namespace bowyer
                     results.Add(edges[i]);
                 }
 
-            }
+            }*/
             return results;
         }
     }
