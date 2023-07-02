@@ -12,8 +12,6 @@ using System.Threading;
 
 public class DungeonGenerator : MonoBehaviour
 {
-    //todo 삼각분할의 외곽선 한 곳만 안 이어진채로 나옴. 확인필요
-    //note ccw에 문제가 있음. 뒤집어 줘야 할때 뒤집지 못해서 위와 같은 문제가 발생하는 듯
     List<Room> pos = new List<Room>();
     int mytilesize = 2;
     [SerializeField]
@@ -40,14 +38,12 @@ public class DungeonGenerator : MonoBehaviour
         
         
         //library code
-        testRoomCreate(Vector2.one * 12, 4);
-        //createRandomCase(10);
+        //testRoomCreate(Vector2.one * 12, 4);
+        createRandomCase(50);
         resetRoomPosition();
         spreateRoom();
         testMyLib();
         showAnser();
-        
-
     }
     void createRandomCase(int count)
     {
@@ -100,16 +96,17 @@ public class DungeonGenerator : MonoBehaviour
     void testRoomCreate(Vector2 mainpos, int space)
     {
         Room room;
-        /*
+        
         room = new Room(mainpos);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-        /*
+        
         room = new Room(mainpos + Vector2.up * space);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+        
         room = new Room(mainpos + Vector2.right * space);
         room.size.x = 2;
         room.size.y = 2;
@@ -119,17 +116,26 @@ public class DungeonGenerator : MonoBehaviour
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-        */
+        
         room = new Room(mainpos + Vector2.left * space);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-        /*
+        room = new Room(mainpos + Vector2.left * space * 2);
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
+        room.size.x = 2;
+        room.size.y = 2;
+        pos.Add(room);
+        
+        
         room = new Room(mainpos + Vector2.one * space);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-        /*
+        
         room = new Room(mainpos - Vector2.one * space);
         room.size.x = 2;
         room.size.y = 2;
@@ -138,16 +144,10 @@ public class DungeonGenerator : MonoBehaviour
         room = new Room(mainpos + (Vector2.left * space) + (Vector2.up * space));
         room.size.x = 2;
         room.size.y = 2;
-        pos.Add(room);*/
-        room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
-        room.size.x = 2;
-        room.size.y = 2;
         pos.Add(room);
+        
 
-        room = new Room(mainpos + Vector2.left * space*2);
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
+        
     }
     
     private void Update()
@@ -238,11 +238,12 @@ public class DungeonGenerator : MonoBehaviour
             Gizmos.DrawCube(max, Vector3.one);
             Gizmos.DrawLine(max, new Vector3(max.x,min.y,0));
             Gizmos.DrawLine(max, new Vector3(min.x, max.y, 0));*/
+            /*
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(new Vector3(-6,-2),new Vector3(-6,46));
             Gizmos.DrawLine(new Vector3(-6, 46), new Vector3(16,8));
             Gizmos.DrawLine(new Vector3(-6, -2), new Vector3(16, 8));
-
+            */
 
         }
 

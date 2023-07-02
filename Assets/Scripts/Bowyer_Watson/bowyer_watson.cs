@@ -8,12 +8,13 @@ using UnityEngine;
 namespace bowyer
 {
 
+    //만약 삼각분할이 제대로 되지 않을 경우 슈퍼 트라이앵글을 생성하는 점의 위치를 더 크게 조정해 줄 것.
     public class bowyer_watson
     {
         public List<Vertex> vertices = new List<Vertex>();
         public List<Triangle> triangles = new List<Triangle>();
         public Triangle super;
-        bool debug_log = true;
+        bool debug_log = false;
         public void main(Action<List<Triangle>> action)
         {
             
@@ -21,13 +22,9 @@ namespace bowyer
             Triangle supertriangle = getSuperTriangle(vertices);
             super = supertriangle;
             triangles.Add(supertriangle);
-
-            for (int i = 0, j = 0; i < vertices.Count&&j<3; i++, j++)
+            action(triangles);
+            for (int i = 0; i < vertices.Count; i++)
             {
-                if (j > 98)
-                {
-                    Debug.LogError("while error");
-                }
                 AddVertex(ref triangles, vertices[i],action);
                 if (debug_log)
                 {
@@ -37,7 +34,7 @@ namespace bowyer
                     }
                 }
             }
-            /*
+            
             for (int i = triangles.Count - 1; i >= 0; i--)
             {
                 Triangle triangle = triangles[i];
@@ -52,7 +49,14 @@ namespace bowyer
                 {
                     Debug.Log($"result {triangles[i2]}");
                 }
-            }*/
+            }
+        }
+        public void main2(Action<List<Triangle>> action)
+        {
+            Triangle supertriangle = getSuperTriangle(vertices);
+            super = supertriangle;
+            triangles.Add(supertriangle);
+            action(triangles);
         }
 
         void testEqualEdge()
@@ -80,6 +84,9 @@ namespace bowyer
 
             return false;
         }
+
+        //https://math.stackexchange.com/questions/4001660/bowyer-watson-algorithm-for-delaunay-triangulation-fails-when-three-vertices-ap
+        //super triangle은 모든 점의 외접원보다 커야함.
         public Triangle getSuperTriangle(List<Vertex> mypos)
         {
             double minx = double.MaxValue, miny = double.MaxValue, maxx = double.MinValue, maxy = double.MinValue;
@@ -102,13 +109,18 @@ namespace bowyer
                     maxy = mypos[i].y;
                 }
             }
-            minx += -10;
-            maxx += 10;
-            miny += -10;
-            maxy += 10;
-            double width = (maxx - minx) * 2;
-            double height = (maxy - miny) * 2;
+            
+            minx += -10000;
+            maxx += 10000;
+            miny += -10000;
+            maxy += 10000;
+            
+            double width = (maxx - minx)*2;
+            double height = (maxy - miny)*2;
+            
+            
             Triangle result = new Triangle();
+            
             result.v1 = new Vertex(minx, miny);
             result.v2 = new Vertex(minx, miny + height);
             result.v3 = new Vertex(width + minx, miny);
@@ -141,7 +153,6 @@ namespace bowyer
                     tmp.Add(triangle1);
                 }
             }
-            
             edges = new List<Edge>(uniqueEdges(edges));
             if (debug_log)
             {
@@ -178,6 +189,7 @@ namespace bowyer
                 index = edges.Count - 1;
                 for (int i=index; i>-1; i--)
                 {
+                    Debug.Log(results[results.Count - 1].Equals(edges[i])+" edge equal");
                     if (results[results.Count - 1].Equals(edges[i]))
                     {
                         edges.RemoveAt(i);
@@ -191,30 +203,6 @@ namespace bowyer
                 }
                 index = edges.Count - 1;
             }
-            /*
-            bool unique=true;
-            for(int i=0;i<edges.Count;i++)
-            {
-                unique = true;
-
-                for(int j = 0; j < edges.Count; j++)
-                {
-                    if (i != j && edges[i].Equals(edges[j]))
-                    {
-                        if (debug_log)
-                        {
-                            Debug.Log($"overlap {edges[i]} {edges[j]}");
-                        }
-                        unique = false;
-                        break;
-                    }
-                }
-                if (unique)
-                {
-                    results.Add(edges[i]);
-                }
-
-            }*/
             return results;
         }
     }

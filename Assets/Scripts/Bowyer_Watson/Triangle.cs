@@ -31,7 +31,6 @@ namespace bowyer
             double result = (ad.x * ad.x + ad.y * ad.y) * (bd.x * cd.y - cd.x * bd.y) -
                 (bd.x * bd.x + bd.y * bd.y) * (ad.x * cd.y - cd.x * ad.y) +
                 (cd.x * cd.x + cd.y * cd.y) * (ad.x * bd.y - bd.x * ad.y);
-            Debug.Log(ccw2()+"now ccw");
             if (ccw2() > 0)
                 return result > 0;
             else return result < 0;
