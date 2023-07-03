@@ -39,7 +39,7 @@ public class DungeonGenerator : MonoBehaviour
         
         //library code
         //testRoomCreate(Vector2.one * 12, 4);
-        createRandomCase(50);
+        createRandomCase(5);
         resetRoomPosition();
         spreateRoom();
         testMyLib();
@@ -49,7 +49,7 @@ public class DungeonGenerator : MonoBehaviour
     {
         for (int i = 0; i < count; i++)
         {
-            Room room = new Room(getRandomPointinCircle(1) * UnityEngine.Random.Range(-10, 10));
+            Room room = new Room(getRandomPointinCircle(1));
             room.size.x = 2;
             room.size.y = 2;
             room.x = getPixelPoint(room.x, (int)(room.size.x * 2));
@@ -91,6 +91,19 @@ public class DungeonGenerator : MonoBehaviour
             bowyer.vertices.Add(new Vertex(pos[i].x, pos[i].y));
         }
         test = new Delaunator(dd.ToArray());
+        showlibedge(test);
+    }
+    void showlibedge(Delaunator delaunator)
+    {
+        for (int e = 0; e < delaunator.Triangles.Length; e++)
+        {
+            if (e > delaunator.Halfedges[e])
+            {
+                IPoint p = delaunator.Points[delaunator.Triangles[e]];
+                IPoint q = delaunator.Points[delaunator.Triangles[Delaunator.NextHalfedge(e)]];
+                Debug.Log($"edge {p} and {q}");
+            }
+        }
     }
 
     void testRoomCreate(Vector2 mainpos, int space)

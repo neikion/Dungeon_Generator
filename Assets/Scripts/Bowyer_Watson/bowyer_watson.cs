@@ -189,7 +189,6 @@ namespace bowyer
                 index = edges.Count - 1;
                 for (int i=index; i>-1; i--)
                 {
-                    Debug.Log(results[results.Count - 1].Equals(edges[i])+" edge equal");
                     if (results[results.Count - 1].Equals(edges[i]))
                     {
                         edges.RemoveAt(i);
