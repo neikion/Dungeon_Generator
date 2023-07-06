@@ -51,13 +51,6 @@ namespace bowyer
                 }
             }
         }
-        public void main2(Action<List<Triangle>> action)
-        {
-            Triangle supertriangle = getSuperTriangle(vertices);
-            super = supertriangle;
-            triangles.Add(supertriangle);
-            action(triangles);
-        }
 
         void testEqualEdge()
         {
