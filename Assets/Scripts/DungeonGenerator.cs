@@ -5,10 +5,10 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-using bowyer;
 using DelaunatorSharp;
 using DelaunatorSharp.Unity.Extensions;
-using System.Threading;
+using Edge = bowyer.Edge;
+using UnityEngine.Experimental.GlobalIllumination;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -30,8 +30,8 @@ public class DungeonGenerator : MonoBehaviour
     float ProcessWaitTime = 1;
     int ProcessLogIndex = 0;
 
-    Delaunator test;
-    bowyer_watson bowyer = new bowyer_watson();
+    Delaunator LibObj;
+    bowyer.bowyer_watson bowyerLib = new bowyer.bowyer_watson();
     // Start is called before the first frame update
     void Start()
     {
@@ -42,8 +42,10 @@ public class DungeonGenerator : MonoBehaviour
         createRandomCase(5);
         resetRoomPosition();
         spreateRoom();
-        testMyLib();
-        showAnser();
+        //testMyLib();
+        LibObj = setDelaunator();
+        getEdge(LibObj, out MyHeap<Edge> edges);
+        startPrim(edges);
     }
     void createRandomCase(int count)
     {
@@ -74,35 +76,43 @@ public class DungeonGenerator : MonoBehaviour
         ShowMyLibFlag = true;
         for (int i = 0; i < pos.Count; i++)
         {
-            bowyer.vertices.Add(new Vertex(pos[i].x, pos[i].y));
+            bowyerLib.vertices.Add(new bowyer.Vertex(pos[i].x, pos[i].y));
         }
-        bowyer.main((List<bowyer.Triangle> list) =>
+        bowyerLib.main((List<bowyer.Triangle> list) =>
         {
             ProcessLog.Add(new List<bowyer.Triangle>(list));
         });
     }
-    void showAnser()
+    Delaunator setDelaunator()
     {
-        //library code
-        List<IPoint> dd = new List<IPoint>();
+        List<IPoint> pointlist = new List<IPoint>();
         for (int i = 0; i < pos.Count; i++)
         {
-            dd.Add(new Point(pos[i].x, pos[i].y));
-            bowyer.vertices.Add(new Vertex(pos[i].x, pos[i].y));
+            pointlist.Add(new Point(pos[i].x, pos[i].y));
+            bowyerLib.vertices.Add(new bowyer.Vertex(pos[i].x, pos[i].y));
         }
-        test = new Delaunator(dd.ToArray());
-        showlibedge(test);
+        return new Delaunator(pointlist.ToArray());
     }
-    void showlibedge(Delaunator delaunator)
+    void startPrim(MyHeap<Edge> edges)
     {
-        for (int e = 0; e < delaunator.Triangles.Length; e++)
+        MyPrim prim=new MyPrim();
+        prim.main(edges);
+        
+    }
+    void getEdge(Delaunator delaunator,out List<Edge> edges)
+    {
+        edges = new List<Edge>();
+        foreach (DelaunatorSharp.Edge edge in MyDelaunatorSharpExtension.getEdge(delaunator, out _))
         {
-            if (e > delaunator.Halfedges[e])
-            {
-                IPoint p = delaunator.Points[delaunator.Triangles[e]];
-                IPoint q = delaunator.Points[delaunator.Triangles[Delaunator.NextHalfedge(e)]];
-                Debug.Log($"edge {p} and {q}");
-            }
+            edges.Add(new Edge(new bowyer.Vertex(edge.P.X, edge.P.Y), new bowyer.Vertex(edge.Q.X, edge.Q.Y)));
+        }
+    }
+    void getEdge(Delaunator delaunator, out MyHeap<Edge> edges)
+    {
+        edges = new MyHeap<Edge>(Edge.CompareDistanceMin);
+        foreach (DelaunatorSharp.Edge edge in MyDelaunatorSharpExtension.getEdge(delaunator, out _))
+        {
+            edges.Push(new Edge(new bowyer.Vertex(edge.P.X, edge.P.Y), new bowyer.Vertex(edge.Q.X, edge.Q.Y)));
         }
     }
 
@@ -218,7 +228,7 @@ public class DungeonGenerator : MonoBehaviour
         v3 = new Vector2((float)(width + min.x), (float)miny);
         //print($"{min.x}  {max.x} {maxx - minx} {width} {maxx + width}");
     }
-    public Vector2 Vertex2vector(Vertex vertex)
+    public Vector2 Vertex2vector(bowyer.Vertex vertex)
     {
         return new Vector2((float)vertex.x, (float)vertex.y);
     }
@@ -228,15 +238,15 @@ public class DungeonGenerator : MonoBehaviour
         {
             
             Gizmos.color = Color.white;
-            if(bowyer.super!=null)
+            if(bowyerLib.super!=null)
             {
-                Gizmos.DrawLine(Vertex2vector(bowyer.super.v1), Vertex2vector(bowyer.super.v2));
-                Gizmos.DrawLine(Vertex2vector(bowyer.super.v2), Vertex2vector(bowyer.super.v3));
-                Gizmos.DrawLine(Vertex2vector(bowyer.super.v3), Vertex2vector(bowyer.super.v1));
+                Gizmos.DrawLine(Vertex2vector(bowyerLib.super.v1), Vertex2vector(bowyerLib.super.v2));
+                Gizmos.DrawLine(Vertex2vector(bowyerLib.super.v2), Vertex2vector(bowyerLib.super.v3));
+                Gizmos.DrawLine(Vertex2vector(bowyerLib.super.v3), Vertex2vector(bowyerLib.super.v1));
             }
-            if (bowyer.triangles.Count > 0)
+            if (bowyerLib.triangles.Count > 0)
             {
-                foreach (bowyer.Triangle triangle in bowyer.triangles)
+                foreach (bowyer.Triangle triangle in bowyerLib.triangles)
                 {
                     Gizmos.DrawLine(Vertex2vector(triangle.v1), Vertex2vector(triangle.v2));
                     Gizmos.DrawLine(Vertex2vector(triangle.v2), Vertex2vector(triangle.v3));
@@ -264,7 +274,7 @@ public class DungeonGenerator : MonoBehaviour
         if (ShowLibFlag)
         {
             Gizmos.color = Color.blue;
-            test.ForEachTriangle((edge) =>
+            LibObj.ForEachTriangle((edge) =>
             {
                 for (int i = 0; i < edge.Points.ToVectors2().Length; i++)
                 {
