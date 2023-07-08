@@ -8,6 +8,10 @@ public class MyHeap<T>
     {
         get { return list.Count; }
     }
+    public List<T> List
+    {
+        get { return list; }
+    }
 
     public MyHeap(Comparison<T> comparison)
     {

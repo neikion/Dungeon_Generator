@@ -9,6 +9,7 @@ using DelaunatorSharp;
 using DelaunatorSharp.Unity.Extensions;
 using Edge = bowyer.Edge;
 using UnityEngine.Experimental.GlobalIllumination;
+using bowyer;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -45,7 +46,8 @@ public class DungeonGenerator : MonoBehaviour
         //testMyLib();
         LibObj = setDelaunator();
         getEdge(LibObj, out MyHeap<Edge> edges);
-        startPrim(edges);
+        //startPrim(edges);
+        startGraphSetting(edges);
     }
     void createRandomCase(int count)
     {
@@ -89,22 +91,27 @@ public class DungeonGenerator : MonoBehaviour
         for (int i = 0; i < pos.Count; i++)
         {
             pointlist.Add(new Point(pos[i].x, pos[i].y));
-            bowyerLib.vertices.Add(new bowyer.Vertex(pos[i].x, pos[i].y));
         }
         return new Delaunator(pointlist.ToArray());
     }
+    /*
     void startPrim(MyHeap<Edge> edges)
     {
         MyPrim prim=new MyPrim();
         prim.main(edges);
         
+    }*/
+    void startGraphSetting(MyHeap<Edge> edges)
+    {
+        MyDungeonGraph graph=new MyDungeonGraph();
+        graph.main(edges);
     }
     void getEdge(Delaunator delaunator,out List<Edge> edges)
     {
         edges = new List<Edge>();
         foreach (DelaunatorSharp.Edge edge in MyDelaunatorSharpExtension.getEdge(delaunator, out _))
         {
-            edges.Add(new Edge(new bowyer.Vertex(edge.P.X, edge.P.Y), new bowyer.Vertex(edge.Q.X, edge.Q.Y)));
+            edges.Add(new Edge(new Vertex(edge.P.X, edge.P.Y), new Vertex(edge.Q.X, edge.Q.Y)));
         }
     }
     void getEdge(Delaunator delaunator, out MyHeap<Edge> edges)
