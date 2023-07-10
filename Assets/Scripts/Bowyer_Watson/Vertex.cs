@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -45,6 +46,19 @@ namespace bowyer{
         public override string ToString()
         {
             return $"vertext x : {x}   y: {y} ";
+        }
+        public override bool Equals(object obj)
+        {
+            if(!(obj is Vertex))
+            {
+                return false;
+            }
+            return Equals((Vertex)obj);
+        }
+        public override int GetHashCode()
+        {
+            // x == other.x && y == other.y
+            return x.GetHashCode() ^ (y.GetHashCode() << 2);
         }
     }
 }
