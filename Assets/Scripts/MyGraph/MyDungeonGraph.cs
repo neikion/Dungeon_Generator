@@ -1,5 +1,7 @@
 using bowyer;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using Edge = bowyer.Edge;
 
 public class MyDungeonGraph
@@ -21,18 +23,49 @@ public class MyDungeonGraph
         List<Edge> list = edges.List;
         for(int i=list.Count-1; i >-1; i--)
         {
+            if (nodeset.ContainsKey(list[i].v1))
+            {
+                nodeset[list[i].v1].edges.Add(list[i]);
+            }
+            if (nodeset.ContainsKey(list[i].v2))
+            {
+                nodeset[list[i].v2].edges.Add(list[i]);
+            }
             if (!nodeset.ContainsKey(list[i].v1))
             {
                 MyNode node = new MyNode();
                 node.Vertex = list[i].v1;
-                node.edges.Add(list[i]);
-            }else if (!nodeset.ContainsKey(list[i].v2))
+                node.edges = new List<Edge> { list[i] };
+                nodeset.Add(node.Vertex, node);
+            }
+            if (!nodeset.ContainsKey(list[i].v2))
             {
                 MyNode node = new MyNode();
                 node.Vertex = list[i].v2;
-                node.edges.Add(list[i]);
+                node.edges = new List<Edge> { list[i] };
+                nodeset.Add(node.Vertex, node);
             }
-            
+            showDictionary();
+
         }
+        
+        List<MyNode> nodelist=new List<MyNode>();
+        //string s="";
+        foreach(MyNode node in nodeset.Values)
+        {
+            nodelist.Add(node);
+            //s += node.Vertex.ToString()+"\n";
+        }
+        //Debug.Log(s);
+    }
+    public void showDictionary()
+    {
+        string s = $"show dictionary \n dictionary count {nodeset.Count} \n";
+        foreach(KeyValuePair<Vertex,MyNode> value in nodeset)
+        {
+            s+=$"{value.Key} {value.Value} \n";
+
+        }
+        Debug.Log(s);
     }
 }
