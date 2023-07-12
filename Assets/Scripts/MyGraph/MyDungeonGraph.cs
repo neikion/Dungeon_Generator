@@ -18,7 +18,7 @@ public class MyDungeonGraph
     이외에는 퀵정렬
     */
     Dictionary<Vertex,MyNode> nodeset=new Dictionary<Vertex, MyNode>();
-    public List<MyNode> main(List<Edge> edges)
+    public ref Dictionary<Vertex, MyNode> main(List<Edge> edges)
     {
         for(int i=edges.Count-1; i >-1; i--)
         {
@@ -50,13 +50,7 @@ public class MyDungeonGraph
             
 
         }
-        showDictionaryDetail();
-        List<MyNode> result=new List<MyNode>();
-        foreach(MyNode node in nodeset.Values)
-        {
-            result.Add(node);
-        }
-        return result;
+        return ref nodeset;
     }
     void showDictionary()
     {

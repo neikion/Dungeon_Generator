@@ -24,6 +24,9 @@ public class DungeonGenerator : MonoBehaviour
     [SerializeField]
     bool ShowMyLibFlag = false;
 
+    [SerializeField]
+    bool ShowPrimFlag = false;
+
     //알고리즘 진행상황 확인 코드
     List<List<bowyer.Triangle>> ProcessLog = new List<List<bowyer.Triangle>>();
     [SerializeField]
@@ -40,14 +43,14 @@ public class DungeonGenerator : MonoBehaviour
         
         //library code
         //testRoomCreate(Vector2.one * 12, 4);
-        createRandomCase(5);
+        createRandomCase(50);
         resetRoomPosition();
         spreateRoom();
         //testMyLib();
         LibObj = setDelaunator();
-        getEdge(LibObj, out MyHeap<Edge> edges);
-        //startPrim(edges);
-        startGraphSetting(edges);
+        getEdge(LibObj, out List<Edge> edges);
+        startGraphSetting(edges,out Dictionary<Vertex,MyNode> nodeset);
+        startPrim(ref nodeset);
     }
     void createRandomCase(int count)
     {
@@ -94,17 +97,17 @@ public class DungeonGenerator : MonoBehaviour
         }
         return new Delaunator(pointlist.ToArray());
     }
-    /*
-    void startPrim(MyHeap<Edge> edges)
+    List<Edge> edges1 = new List<Edge>();
+    void startPrim(ref Dictionary<Vertex,MyNode> nodeset)
     {
         MyPrim prim=new MyPrim();
-        prim.main(edges);
+        prim.main(ref nodeset,out edges1);
         
-    }*/
-    void startGraphSetting(MyHeap<Edge> edges)
+    }
+    void startGraphSetting(List<Edge> edges,out Dictionary<Vertex,MyNode> nodelist)
     {
         MyDungeonGraph graph=new MyDungeonGraph();
-        graph.main(edges);
+        nodelist=graph.main(edges);
     }
     void getEdge(Delaunator delaunator,out List<Edge> edges)
     {
@@ -119,7 +122,7 @@ public class DungeonGenerator : MonoBehaviour
         edges = new MyHeap<Edge>(Edge.CompareDistanceMin);
         foreach (DelaunatorSharp.Edge edge in MyDelaunatorSharpExtension.getEdge(delaunator, out _))
         {
-            edges.Push(new Edge(new bowyer.Vertex(edge.P.X, edge.P.Y), new bowyer.Vertex(edge.Q.X, edge.Q.Y)));
+            edges.Push(new Edge(new Vertex(edge.P.X, edge.P.Y), new Vertex(edge.Q.X, edge.Q.Y)));
         }
     }
 
@@ -151,10 +154,12 @@ public class DungeonGenerator : MonoBehaviour
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+        
         room = new Room(mainpos + Vector2.left * space * 2);
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
+        
         room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
         room.size.x = 2;
         room.size.y = 2;
@@ -170,7 +175,7 @@ public class DungeonGenerator : MonoBehaviour
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-
+        
         room = new Room(mainpos + (Vector2.left * space) + (Vector2.up * space));
         room.size.x = 2;
         room.size.y = 2;
@@ -300,6 +305,14 @@ public class DungeonGenerator : MonoBehaviour
                 Gizmos.DrawLine(Vertex2vector(triangle.v1), Vertex2vector(triangle.v2));
                 Gizmos.DrawLine(Vertex2vector(triangle.v2), Vertex2vector(triangle.v3));
                 Gizmos.DrawLine(Vertex2vector(triangle.v3), Vertex2vector(triangle.v1));
+            }
+        }
+        if (ShowPrimFlag)
+        {
+            Gizmos.color = Color.green;
+            foreach(Edge edge in edges1)
+            {
+                Gizmos.DrawLine(new Vector2((float)edge.v1.x, (float)edge.v1.y), new Vector2((float)edge.v2.x, (float)edge.v2.y));
             }
         }
     }
