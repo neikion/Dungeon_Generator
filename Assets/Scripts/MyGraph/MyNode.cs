@@ -6,6 +6,6 @@ using UnityEngine;
 public class MyNode
 {
     public Vertex Vertex;
-    public List<Edge> edges;
+    public MyHeap<Edge> edges;
 
 }

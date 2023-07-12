@@ -18,52 +18,67 @@ public class MyDungeonGraph
     이외에는 퀵정렬
     */
     Dictionary<Vertex,MyNode> nodeset=new Dictionary<Vertex, MyNode>();
-    public void main(MyHeap<Edge> edges)
+    public List<MyNode> main(List<Edge> edges)
     {
-        List<Edge> list = edges.List;
-        for(int i=list.Count-1; i >-1; i--)
+        for(int i=edges.Count-1; i >-1; i--)
         {
-            if (nodeset.ContainsKey(list[i].v1))
+            if (nodeset.ContainsKey(edges[i].v1))
             {
-                nodeset[list[i].v1].edges.Add(list[i]);
+                nodeset[edges[i].v1].edges.List.Add(edges[i]);
             }
-            if (nodeset.ContainsKey(list[i].v2))
+            if (nodeset.ContainsKey(edges[i].v2))
             {
-                nodeset[list[i].v2].edges.Add(list[i]);
+                nodeset[edges[i].v2].edges.List.Add(edges[i]);
             }
-            if (!nodeset.ContainsKey(list[i].v1))
-            {
-                MyNode node = new MyNode();
-                node.Vertex = list[i].v1;
-                node.edges = new List<Edge> { list[i] };
-                nodeset.Add(node.Vertex, node);
-            }
-            if (!nodeset.ContainsKey(list[i].v2))
+
+            if (!nodeset.ContainsKey(edges[i].v1))
             {
                 MyNode node = new MyNode();
-                node.Vertex = list[i].v2;
-                node.edges = new List<Edge> { list[i] };
+                node.Vertex = edges[i].v1;
+                node.edges = new MyHeap<Edge>(Edge.CompareDistanceMin);
+                node.edges.Push(edges[i]);
                 nodeset.Add(node.Vertex, node);
             }
-            showDictionary();
+            if (!nodeset.ContainsKey(edges[i].v2))
+            {
+                MyNode node = new MyNode();
+                node.Vertex = edges[i].v2;
+                node.edges = new MyHeap<Edge>(Edge.CompareDistanceMin);
+                node.edges.Push(edges[i]);
+                nodeset.Add(node.Vertex, node);
+            }
+            
 
         }
-        
-        List<MyNode> nodelist=new List<MyNode>();
-        //string s="";
+        showDictionaryDetail();
+        List<MyNode> result=new List<MyNode>();
         foreach(MyNode node in nodeset.Values)
         {
-            nodelist.Add(node);
-            //s += node.Vertex.ToString()+"\n";
+            result.Add(node);
         }
-        //Debug.Log(s);
+        return result;
     }
-    public void showDictionary()
+    void showDictionary()
     {
         string s = $"show dictionary \n dictionary count {nodeset.Count} \n";
         foreach(KeyValuePair<Vertex,MyNode> value in nodeset)
         {
             s+=$"{value.Key} {value.Value} \n";
+
+        }
+        Debug.Log(s);
+    }
+    void showDictionaryDetail()
+    {
+        string s = $"show dictionary \n dictionary count {nodeset.Count} \n";
+        foreach (KeyValuePair<Vertex, MyNode> value in nodeset)
+        {
+            s += $"{value.Key} {value.Value} \n {{";
+            foreach(Edge edge in value.Value.edges.List)
+            {
+                s += $"{edge} ";
+            }
+            s += "}\n";
 
         }
         Debug.Log(s);
