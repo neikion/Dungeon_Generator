@@ -6,11 +6,17 @@ using UnityEngine;
 
 public class MyPrim
 {
-    MyHeap<Edge> heap;
-    Dictionary<Vertex,MyNode> nodes=new Dictionary<Vertex, MyNode> ();
-    List<Edge> edges = new List<Edge>();
+    private MyHeap<Edge> heap;
+    private Dictionary<Vertex,MyNode> nodes=new Dictionary<Vertex, MyNode> ();
+    private List<Edge> RemoveEdge;
+    public List<Edge> RemoveEdgeList
+    {
+        get { return RemoveEdge; }
+    }
     public void main(ref Dictionary<Vertex, MyNode> nodeset, out List<Edge> result)
     {
+        RemoveEdge=new List<Edge>();
+        result=new List<Edge>();
         MyNode node = nodeset.Values.ElementAt(0);
         nodes.Add(node.Vertex,node);
         nodeset.Remove(node.Vertex);
@@ -40,7 +46,6 @@ public class MyPrim
                     MyVertex = MinEdge.v2;
                     OtherNode = true;
                 }
-
             }
             if (!OtherNode)
             {
@@ -53,45 +58,35 @@ public class MyPrim
                 if (!nodes.ContainsKey(Edge.v1) && !nodes.ContainsKey(Edge.v2) && !Edge.Equals(MinEdge))
                 {
                     heap.Push(Edge);
+                }else if (!Edge.Equals(MinEdge))
+                {
+                    RemoveEdge.Add(Edge);
                 }
             }
             nodes.Add(SelectNode.Vertex, SelectNode);
-
             nodeset.Remove(SelectVertex);
-            edges.Add(MinEdge);
-            
+            result.Add(MinEdge);
         }
-        
-        result = edges;
     }
-    void showedge()
+    private void showEdgeList(List<Edge> list)
     {
-        string s = $"edge count {edges.Count} \n";
-        foreach (Edge edge in edges)
+        string s = $"Edge count {list.Count} \n";
+        foreach (Edge edge in list)
         {
-            s += edge.ToString();
+            s += edge + "\n";
         }
         Debug.Log(s);
     }
-    void shownode()
+    private void showNodeSet(Dictionary<Vertex,MyNode> nodeset)
     {
-        string s = $"nodes count {nodes.Count} \n";
-        foreach (MyNode node in nodes.Values)
-        {
-            s += node.Vertex + "\n";
-        }
-        Debug.Log(s);
-    }
-    void shownode(Dictionary<Vertex,MyNode> nodeset)
-    {
-        string s = $"nodeset count {nodeset.Count} \n";
+        string s = $"node count {nodeset.Count} \n";
         foreach (MyNode node in nodeset.Values)
         {
             s += node.Vertex + "\n";
         }
         Debug.Log(s);
     }
-    void shownodelist(List<MyNode> nodelist)
+    private void showNodeList(List<MyNode> nodelist)
     {
         string s = $"nodelist count {nodelist.Count} \n";
         foreach (MyNode node in nodelist)

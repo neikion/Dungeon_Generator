@@ -1,14 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using DelaunatorSharp;
 using DelaunatorSharp.Unity.Extensions;
 using Edge = bowyer.Edge;
-using UnityEngine.Experimental.GlobalIllumination;
 using bowyer;
 
 public class DungeonGenerator : MonoBehaviour
@@ -26,6 +20,15 @@ public class DungeonGenerator : MonoBehaviour
 
     [SerializeField]
     bool ShowPrimFlag = false;
+    List<Edge> PrimEdge = new List<Edge>();
+   
+    [SerializeField]
+    bool ShowPrimRmoveFlag = false;
+    List<Edge> PrimRemoveEdge = new List<Edge>();
+
+    [SerializeField]
+    bool ShowPrimEditedFlag = false;
+    List<Edge> PrimEditedEdge=new List<Edge>();
 
     //알고리즘 진행상황 확인 코드
     List<List<bowyer.Triangle>> ProcessLog = new List<List<bowyer.Triangle>>();
@@ -50,7 +53,11 @@ public class DungeonGenerator : MonoBehaviour
         LibObj = setDelaunator();
         getEdge(LibObj, out List<Edge> edges);
         startGraphSetting(edges,out Dictionary<Vertex,MyNode> nodeset);
-        startPrim(ref nodeset);
+        List<Edge> PrimResult = startPrim(ref nodeset,out List<Edge> removeEdge);
+        PrimEdge = PrimResult;
+        PrimRemoveEdge = removeEdge;
+        List<Edge> ModifyEdge = AddRandomEdge(ref PrimEdge, ref removeEdge,out PrimEditedEdge);
+
     }
     void createRandomCase(int count)
     {
@@ -97,12 +104,12 @@ public class DungeonGenerator : MonoBehaviour
         }
         return new Delaunator(pointlist.ToArray());
     }
-    List<Edge> edges1 = new List<Edge>();
-    void startPrim(ref Dictionary<Vertex,MyNode> nodeset)
+    List<Edge> startPrim(ref Dictionary<Vertex,MyNode> nodeset,out List<Edge> RemoveEdge)
     {
         MyPrim prim=new MyPrim();
-        prim.main(ref nodeset,out edges1);
-        
+        prim.main(ref nodeset,out List<Edge> edges);
+        RemoveEdge = prim.RemoveEdgeList;
+        return edges;
     }
     void startGraphSetting(List<Edge> edges,out Dictionary<Vertex,MyNode> nodelist)
     {
@@ -159,7 +166,7 @@ public class DungeonGenerator : MonoBehaviour
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-        
+        /*
         room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
         room.size.x = 2;
         room.size.y = 2;
@@ -180,7 +187,7 @@ public class DungeonGenerator : MonoBehaviour
         room.size.x = 2;
         room.size.y = 2;
         pos.Add(room);
-        
+        */
 
         
     }
@@ -199,48 +206,7 @@ public class DungeonGenerator : MonoBehaviour
 
 
     }
-
-    Vector2 v1, v2, v3,min,max;
-
-
-    void getSuperTriangle(List<Room> mypos)
-    {
-        double minx = double.MaxValue, miny = double.MaxValue, maxx = double.MinValue, maxy = double.MinValue;
-        for (int i = 0; i < mypos.Count; i++)
-        {
-            if (minx > mypos[i].x)
-            {
-                minx = mypos[i].x;
-            }
-            if (miny > mypos[i].y)
-            {
-                miny = mypos[i].y;
-            }
-            if (maxx < mypos[i].x)
-            {
-                maxx = mypos[i].x;
-            }
-            if (maxy < mypos[i].y)
-            {
-                maxy = mypos[i].y;
-            }
-        }
-        minx += -10;
-        maxx += 10;
-        miny += -10;
-        maxy += 10;
-        min.x = (float)minx;
-        min.y = (float)miny;
-        max.x = (float)maxx;
-        max.y = (float)maxy;
-        double width = (maxx - minx)*2;
-        double height = (maxy - miny)*2;
-        v1 = new Vector2((float)minx, (float)miny);
-        v2 = new Vector2((float)minx, (float)(min.y + height));
-        v3 = new Vector2((float)(width + min.x), (float)miny);
-        //print($"{min.x}  {max.x} {maxx - minx} {width} {maxx + width}");
-    }
-    public Vector2 Vertex2vector(bowyer.Vertex vertex)
+    public Vector2 Vertex2vector(Vertex vertex)
     {
         return new Vector2((float)vertex.x, (float)vertex.y);
     }
@@ -265,21 +231,6 @@ public class DungeonGenerator : MonoBehaviour
                     Gizmos.DrawLine(Vertex2vector(triangle.v3), Vertex2vector(triangle.v1));
                 }
             }
-            /*
-            Gizmos.DrawLine(v1, v2);
-            Gizmos.DrawLine(v2, v3);
-            Gizmos.DrawLine(v3, v1);
-            Gizmos.DrawCube(min, Vector3.one);
-            Gizmos.DrawCube(max, Vector3.one);
-            Gizmos.DrawLine(max, new Vector3(max.x,min.y,0));
-            Gizmos.DrawLine(max, new Vector3(min.x, max.y, 0));*/
-            /*
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(new Vector3(-6,-2),new Vector3(-6,46));
-            Gizmos.DrawLine(new Vector3(-6, 46), new Vector3(16,8));
-            Gizmos.DrawLine(new Vector3(-6, -2), new Vector3(16, 8));
-            */
-
         }
 
         //library show
@@ -310,11 +261,28 @@ public class DungeonGenerator : MonoBehaviour
         if (ShowPrimFlag)
         {
             Gizmos.color = Color.green;
-            foreach(Edge edge in edges1)
+            foreach(Edge edge in PrimEdge)
             {
-                Gizmos.DrawLine(new Vector2((float)edge.v1.x, (float)edge.v1.y), new Vector2((float)edge.v2.x, (float)edge.v2.y));
+                Gizmos.DrawLine(Vertex2vector(edge.v1), Vertex2vector(edge.v2));
             }
         }
+        if (ShowPrimRmoveFlag)
+        {
+            Gizmos.color = new Color32(255, 0, 0, 255);
+            foreach (Edge edge in PrimRemoveEdge)
+            {
+                Gizmos.DrawLine(Vertex2vector(edge.v1), Vertex2vector(edge.v2));
+            }
+        }
+        if (ShowPrimEditedFlag)
+        {
+            Gizmos.color = new Color32(160, 32, 240,255);
+            foreach (Edge edge in PrimEditedEdge)
+            {
+                Gizmos.DrawLine(Vertex2vector(edge.v1), Vertex2vector(edge.v2));
+            }
+        }
+        
     }
     void spreateRoom()
     {
@@ -349,8 +317,6 @@ public class DungeonGenerator : MonoBehaviour
                 }
             }
         }
-        //getSuperTriangle(pos);
-
     }
     private Vector2 changeOverlapPos()
     {
@@ -452,5 +418,27 @@ public class DungeonGenerator : MonoBehaviour
         float theta = 2 *Mathf.PI* UnityEngine.Random.value;
         return new Vector2(r*Mathf.Cos(theta),r*Mathf.Sin(theta));
     }
+    List<Edge> AddRandomEdge(ref List<Edge> edges,ref List<Edge> removeEdge)
+    {
+        List<Edge> result = new List<Edge>(edges);
+        for(int i = 0; i < (removeEdge.Count/3); i++)
+        {
+            int r = Random.Range(0, removeEdge.Count);
+            result.Add(removeEdge[r]);
+        }
+        return result;
+    }
 
+    List<Edge> AddRandomEdge(ref List<Edge> edges, ref List<Edge> removeEdge,out List<Edge> AddedEdges)
+    {
+        List<Edge> result = new List<Edge>(edges);
+        AddedEdges=new List<Edge>();
+        for (int i = 0; i < (removeEdge.Count / 3); i++)
+        {
+            int r = Random.Range(0, removeEdge.Count);
+            result.Add(removeEdge[r]);
+            AddedEdges.Add(removeEdge[r]);
+        }
+        return result;
+    }
 }
