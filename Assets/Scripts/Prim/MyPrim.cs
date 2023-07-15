@@ -7,17 +7,17 @@ using UnityEngine;
 public class MyPrim
 {
     private MyHeap<Edge> heap;
-    private Dictionary<Vertex,MyNode> nodes=new Dictionary<Vertex, MyNode> ();
+    private Dictionary<Vertex,GraphNode> nodes=new Dictionary<Vertex, GraphNode> ();
     private List<Edge> RemoveEdge;
     public List<Edge> RemoveEdgeList
     {
         get { return RemoveEdge; }
     }
-    public void main(ref Dictionary<Vertex, MyNode> nodeset, out List<Edge> result)
+    public void main(ref Dictionary<Vertex, GraphNode> nodeset, out List<Edge> result)
     {
         RemoveEdge=new List<Edge>();
         result=new List<Edge>();
-        MyNode node = nodeset.Values.ElementAt(0);
+        GraphNode node = nodeset.Values.ElementAt(0);
         nodes.Add(node.Vertex,node);
         nodeset.Remove(node.Vertex);
         heap = new MyHeap<Edge>(Edge.CompareDistanceMin);
@@ -52,7 +52,7 @@ public class MyPrim
                 Debug.LogError($"새로 연결할 노드 없음");
                 break;
             }
-            MyNode SelectNode = nodeset[SelectVertex];
+            GraphNode SelectNode = nodeset[SelectVertex];
             foreach (Edge Edge in SelectNode.edges.List)
             {
                 if (!nodes.ContainsKey(Edge.v1) && !nodes.ContainsKey(Edge.v2) && !Edge.Equals(MinEdge))
@@ -77,19 +77,19 @@ public class MyPrim
         }
         Debug.Log(s);
     }
-    private void showNodeSet(Dictionary<Vertex,MyNode> nodeset)
+    private void showNodeSet(Dictionary<Vertex,GraphNode> nodeset)
     {
         string s = $"node count {nodeset.Count} \n";
-        foreach (MyNode node in nodeset.Values)
+        foreach (GraphNode node in nodeset.Values)
         {
             s += node.Vertex + "\n";
         }
         Debug.Log(s);
     }
-    private void showNodeList(List<MyNode> nodelist)
+    private void showNodeList(List<GraphNode> nodelist)
     {
         string s = $"nodelist count {nodelist.Count} \n";
-        foreach (MyNode node in nodelist)
+        foreach (GraphNode node in nodelist)
         {
             s += node.Vertex + "\n";
         }

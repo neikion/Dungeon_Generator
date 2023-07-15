@@ -17,8 +17,8 @@ public class MyDungeonGraph
     파티션의 크기가 2*logN (N은 입력 배열의 범위)일 때 힙 정렬
     이외에는 퀵정렬
     */
-    Dictionary<Vertex,MyNode> nodeset=new Dictionary<Vertex, MyNode>();
-    public ref Dictionary<Vertex, MyNode> main(List<Edge> edges)
+    Dictionary<Vertex,GraphNode> nodeset=new Dictionary<Vertex, GraphNode>();
+    public ref Dictionary<Vertex, GraphNode> main(List<Edge> edges)
     {
         for(int i=edges.Count-1; i >-1; i--)
         {
@@ -33,7 +33,7 @@ public class MyDungeonGraph
 
             if (!nodeset.ContainsKey(edges[i].v1))
             {
-                MyNode node = new MyNode();
+                GraphNode node = new GraphNode();
                 node.Vertex = edges[i].v1;
                 node.edges = new MyHeap<Edge>(Edge.CompareDistanceMin);
                 node.edges.Push(edges[i]);
@@ -41,7 +41,7 @@ public class MyDungeonGraph
             }
             if (!nodeset.ContainsKey(edges[i].v2))
             {
-                MyNode node = new MyNode();
+                GraphNode node = new GraphNode();
                 node.Vertex = edges[i].v2;
                 node.edges = new MyHeap<Edge>(Edge.CompareDistanceMin);
                 node.edges.Push(edges[i]);
@@ -55,7 +55,7 @@ public class MyDungeonGraph
     void showDictionary()
     {
         string s = $"show dictionary \n dictionary count {nodeset.Count} \n";
-        foreach(KeyValuePair<Vertex,MyNode> value in nodeset)
+        foreach(KeyValuePair<Vertex,GraphNode> value in nodeset)
         {
             s+=$"{value.Key} {value.Value} \n";
 
@@ -65,7 +65,7 @@ public class MyDungeonGraph
     void showDictionaryDetail()
     {
         string s = $"show dictionary \n dictionary count {nodeset.Count} \n";
-        foreach (KeyValuePair<Vertex, MyNode> value in nodeset)
+        foreach (KeyValuePair<Vertex, GraphNode> value in nodeset)
         {
             s += $"{value.Key} {value.Value} \n {{";
             foreach(Edge edge in value.Value.edges.List)

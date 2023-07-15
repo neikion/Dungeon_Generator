@@ -52,7 +52,7 @@ public class DungeonGenerator : MonoBehaviour
         //testMyLib();
         LibObj = setDelaunator();
         getEdge(LibObj, out List<Edge> edges);
-        startGraphSetting(edges,out Dictionary<Vertex,MyNode> nodeset);
+        startGraphSetting(edges,out Dictionary<Vertex,GraphNode> nodeset);
         List<Edge> PrimResult = startPrim(ref nodeset,out List<Edge> removeEdge);
         PrimEdge = PrimResult;
         PrimRemoveEdge = removeEdge;
@@ -104,14 +104,14 @@ public class DungeonGenerator : MonoBehaviour
         }
         return new Delaunator(pointlist.ToArray());
     }
-    List<Edge> startPrim(ref Dictionary<Vertex,MyNode> nodeset,out List<Edge> RemoveEdge)
+    List<Edge> startPrim(ref Dictionary<Vertex,GraphNode> nodeset,out List<Edge> RemoveEdge)
     {
         MyPrim prim=new MyPrim();
         prim.main(ref nodeset,out List<Edge> edges);
         RemoveEdge = prim.RemoveEdgeList;
         return edges;
     }
-    void startGraphSetting(List<Edge> edges,out Dictionary<Vertex,MyNode> nodelist)
+    void startGraphSetting(List<Edge> edges,out Dictionary<Vertex,GraphNode> nodelist)
     {
         MyDungeonGraph graph=new MyDungeonGraph();
         nodelist=graph.main(edges);
