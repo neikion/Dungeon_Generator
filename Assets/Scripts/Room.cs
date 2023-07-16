@@ -10,6 +10,7 @@ public class Room
     public Vector2 position;
     public Vector2 size;
     public List<GameObject> gameObjects;
+    public Dictionary<Vector2Int, TileNode> Nodes;
     public float x
     {
         get { return position.x; }
@@ -32,9 +33,20 @@ public class Room
     {
 
     }
-    public Room(Vector2 pos)
+    public Room(Vector2 pos,Vector2Int Size)
     {
         position= pos;
+        size=new Vector2(Size.x, Size.y);
+        Nodes = new Dictionary<Vector2Int, TileNode>();
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = 0; y < size.y; y++)
+            {
+                TileNode node = new TileNode((x + 0.5 - (0.5 * size.x))*DungeonGenerator.mytilesize, (y + 0.5 - (0.5 * size.y))*DungeonGenerator.mytilesize, TileType.Room);
+                Nodes.Add(new Vector2Int(x, y), node);
+            }
+        }
+
     }
     public bool overlap(Room room, int tilesize)
     {
