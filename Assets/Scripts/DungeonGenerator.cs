@@ -4,11 +4,12 @@ using DelaunatorSharp;
 using DelaunatorSharp.Unity.Extensions;
 using Edge = bowyer.Edge;
 using bowyer;
+using System.Linq;
 
 public class DungeonGenerator : MonoBehaviour
 {
     List<Room> pos = new List<Room>();
-    int mytilesize = 2;
+    public const int mytilesize = 2;
     [SerializeField]
     GameObject floorObject;
 
@@ -39,16 +40,20 @@ public class DungeonGenerator : MonoBehaviour
 
     Delaunator LibObj;
     bowyer.bowyer_watson bowyerLib = new bowyer.bowyer_watson();
+
+    MapManager MapManager;
     // Start is called before the first frame update
     void Start()
     {
-        
+
+        MapManager = new MapManager();
         
         //library code
         //testRoomCreate(Vector2.one * 12, 4);
-        createRandomCase(50);
+        createRandomCase(5);
         resetRoomPosition();
         spreateRoom();
+        AddAllRoomToMapManager(ref pos,ref MapManager);
         //testMyLib();
         LibObj = setDelaunator();
         getEdge(LibObj, out List<Edge> edges);
@@ -57,19 +62,17 @@ public class DungeonGenerator : MonoBehaviour
         PrimEdge = PrimResult;
         PrimRemoveEdge = removeEdge;
         List<Edge> ModifyEdge = AddRandomEdge(ref PrimEdge, ref removeEdge,out PrimEditedEdge);
-
     }
     void createRandomCase(int count)
     {
+        Vector2 RandomPos;
         for (int i = 0; i < count; i++)
         {
-            Room room = new Room(getRandomPointinCircle(1));
-            room.size.x = 2;
-            room.size.y = 2;
-            room.x = getPixelPoint(room.x, (int)(room.size.x * 2));
-            room.y = getPixelPoint(room.y, (int)(room.size.y * 2));
+            RandomPos = getRandomPointinCircle(1);
+            Room room = new Room(Vector2Int.zero, Vector2Int.one * Random.Range(2,6));
+            room.x = getPixelPoint(RandomPos.x, (int)(room.size.x * 2));
+            room.y = getPixelPoint(RandomPos.y, (int)(room.size.y * 2));
             pos.Add(room);
-
         }
     }
     void resetRoomPosition()
@@ -77,7 +80,7 @@ public class DungeonGenerator : MonoBehaviour
         for (int i = 0; i < pos.Count; i++)
         {
             pos[i].gameObjects = createRectangleRoom(pos[i].size, mytilesize);
-            pos[i].gameObjects[0].transform.position = pos[i].position;
+            pos[i].gameObjects[0].transform.position = new Vector2(pos[i].position.x, pos[i].position.y);
         }
     }
 
@@ -133,38 +136,26 @@ public class DungeonGenerator : MonoBehaviour
         }
     }
 
-    void testRoomCreate(Vector2 mainpos, int space)
+    void testRoomCreate(Vector2Int mainpos, int space)
     {
         Room room;
         
-        room = new Room(mainpos);
-        room.size.x = 2;
-        room.size.y = 2;
+        room = new Room(mainpos, Vector2Int.one * 2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2.up * space);
-        room.size.x = 2;
-        room.size.y = 2;
+        room = new Room(mainpos + Vector2Int.up * space,Vector2Int.one*2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2.right * space);
-        room.size.x = 2;
-        room.size.y = 2;
+        room = new Room(mainpos + Vector2Int.right * space, Vector2Int.one * 2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2.down * space);
-        room.size.x = 2;
-        room.size.y = 2;
+        room = new Room(mainpos + Vector2Int.down * space, Vector2Int.one * 2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2.left * space);
-        room.size.x = 2;
-        room.size.y = 2;
+        room = new Room(mainpos + Vector2Int.left * space, Vector2Int.one * 2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2.left * space * 2);
-        room.size.x = 2;
-        room.size.y = 2;
+        room = new Room(mainpos + Vector2Int.left * space * 2, Vector2Int.one * 2);
         pos.Add(room);
         /*
         room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
@@ -303,10 +294,10 @@ public class DungeonGenerator : MonoBehaviour
                 {
                     if (current == other || !pos[current].overlap(pos[other],mytilesize)) continue;
 
-                    Vector2 direction = (pos[other].position - pos[current].position).normalized;
+                    Vector2 direction = (pos[other].position - pos[current].position);
+                    direction=direction.normalized;
                     if (direction.Equals(Vector2.zero))
                     {
-                        
                         direction = changeOverlapPos();
                     }
                     direction.x = Mathf.RoundToInt(direction.x);
@@ -320,8 +311,8 @@ public class DungeonGenerator : MonoBehaviour
     }
     private Vector2 changeOverlapPos()
     {
-        int x = UnityEngine.Random.Range(-1, 2);
-        int y = UnityEngine.Random.Range(1, 3);
+        int x = Random.Range(-1, 2);
+        int y = Random.Range(1, 3);
         if (x == 0)
         {
             if (y == 1) y = -y;
@@ -440,5 +431,17 @@ public class DungeonGenerator : MonoBehaviour
             AddedEdges.Add(removeEdge[r]);
         }
         return result;
+    }
+    /// <summary>
+    /// Must be executed after moving every room.
+    /// </summary>
+    /// <param name="roomlist"></param>
+    /// <param name="manager"></param>
+    private void AddAllRoomToMapManager(ref List<Room> roomlist, ref MapManager manager)
+    {
+        foreach(Room room in roomlist)
+        {
+            manager.AddRoomtoWorld(room);
+        }
     }
 }
