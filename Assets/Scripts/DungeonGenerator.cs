@@ -4,11 +4,14 @@ using DelaunatorSharp;
 using DelaunatorSharp.Unity.Extensions;
 using Edge = bowyer.Edge;
 using bowyer;
-using System.Linq;
+using System.Collections;
 
 public class DungeonGenerator : MonoBehaviour
 {
     List<Room> pos = new List<Room>();
+    /// <summary>
+    /// tile size is (image pixel / pixel per unit )
+    /// </summary>
     public const int mytilesize = 2;
     [SerializeField]
     GameObject floorObject;
@@ -49,7 +52,7 @@ public class DungeonGenerator : MonoBehaviour
         MapManager = new MapManager();
         
         //library code
-        //testRoomCreate(Vector2.one * 12, 4);
+        //testRoomCreate(Vector2Int.one * 12, 6);
         createRandomCase(5);
         resetRoomPosition();
         spreateRoom();
@@ -62,6 +65,7 @@ public class DungeonGenerator : MonoBehaviour
         PrimEdge = PrimResult;
         PrimRemoveEdge = removeEdge;
         List<Edge> ModifyEdge = AddRandomEdge(ref PrimEdge, ref removeEdge,out PrimEditedEdge);
+        CreateHallway(MapManager, ModifyEdge,mytilesize);
     }
     void createRandomCase(int count)
     {
@@ -69,9 +73,9 @@ public class DungeonGenerator : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             RandomPos = getRandomPointinCircle(1);
-            Room room = new Room(Vector2Int.zero, Vector2Int.one * Random.Range(2,6));
-            room.x = getPixelPoint(RandomPos.x, (int)(room.size.x * 2));
-            room.y = getPixelPoint(RandomPos.y, (int)(room.size.y * 2));
+            Room room = new Room(Vector2Int.zero, Vector2Int.one * ((i%5)+1) * 2);
+            room.x = getPixelPoint(RandomPos.x, mytilesize);
+            room.y = getPixelPoint(RandomPos.y, mytilesize);
             pos.Add(room);
         }
     }
@@ -143,19 +147,19 @@ public class DungeonGenerator : MonoBehaviour
         room = new Room(mainpos, Vector2Int.one * 2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2Int.up * space,Vector2Int.one*2);
+        room = new Room(mainpos + Vector2Int.up * space,Vector2Int.one * 2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2Int.right * space, Vector2Int.one * 2);
+        room = new Room(mainpos + Vector2Int.right * space, Vector2Int.one * 4);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2Int.down * space, Vector2Int.one * 2);
+        room = new Room(mainpos + Vector2Int.down * space, Vector2Int.one * 4);
         pos.Add(room);
         
         room = new Room(mainpos + Vector2Int.left * space, Vector2Int.one * 2);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2Int.left * space * 2, Vector2Int.one * 2);
+        room = new Room(mainpos + Vector2Int.left * space * 2, Vector2Int.one * 4);
         pos.Add(room);
         /*
         room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
@@ -372,11 +376,13 @@ public class DungeonGenerator : MonoBehaviour
         }
         return true;
     }
+
     int getPixelPoint(float value,int tile_size)
     {
         int target = Mathf.RoundToInt(value);
         int error=target%tile_size;
         int result;
+        //에러를 더하거나 빼는 판단 기준
         double tilestand = tile_size / 2;
         if (error > 0)
         {
@@ -443,5 +449,52 @@ public class DungeonGenerator : MonoBehaviour
         {
             manager.AddRoomtoWorld(room);
         }
+    }
+    //Room move가 타일 사이즈에 반씩 움직이고 있음
+    private void CreateHallway(MapManager map,List<Edge> PrimEdge, int tilesize)
+    {
+        for (int Roomindex=0;Roomindex<PrimEdge.Count;Roomindex++)
+        {
+            Room StartRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v1)];
+            Room EndRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v2)];
+            Vector2 StartRoomMax=StartRoom.max(tilesize);
+            Vector2 EndRoomMax=EndRoom.max(tilesize);
+            Vector2 StartRoomMin=StartRoom.min(tilesize);
+            Vector2 EndRoomMin=EndRoom.min(tilesize);
+            bool IsEndRoomRight = StartRoom.GetRoomRelativePosX(EndRoom, tilesize) > 0 ? true : false;
+            bool IsEndRoomUp = StartRoom.GetRoomRelativePosY(EndRoom, tilesize) > 0 ? true : false;
+            
+            //horizontal y로 이어질 수 있음.
+            if (StartRoomMax.x > EndRoomMin.x && EndRoomMax.x > StartRoomMin.x)
+            {
+
+                int OverlapSizeMinX =(int)Mathf.Max(StartRoomMin.x, EndRoomMin.x);
+                int OverlapSIzeMaxX =(int)Mathf.Min(StartRoomMax.x, EndRoomMax.x);
+                int middlepoint = (int)(((OverlapSIzeMaxX - OverlapSizeMinX)/tilesize)*0.5);
+                //((x + 0.5 - (0.5 * size.x))*DungeonGenerator.mytilesize)
+                //print(middlepoint);
+                if (IsEndRoomUp)
+                {
+                    for(int SearchingIndex = (int)(EndRoomMin.y - StartRoomMax.y); SearchingIndex > 0; SearchingIndex--)
+                    {
+                        if (MapManager.WorldMap.ContainsKey(new Vector2Int(middlepoint, (int)StartRoomMax.y + SearchingIndex)))
+                        {
+                            //print(new Vector2Int(middlepoint, (int)StartRoomMax.y + SearchingIndex));
+                        }
+                    }
+                }
+            }
+            //vertical
+            else if (StartRoomMax.y > EndRoomMin.y && EndRoomMax.y > StartRoomMin.y)
+            {
+
+            }
+            else
+            {
+                //서로 겹치는 부분이 없어 ㄱ자형으로 꺽어야함.
+                
+            }
+        }
+        
     }
 }
