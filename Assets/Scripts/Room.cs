@@ -27,11 +27,11 @@ public class Room
         get { return position.y; }
         set { position.y = value; }
     }
-    public Vector2 min(int tilesize)
+    public Vector2 minTilePos(int tilesize)
     {
         return position - (size * 0.5f * tilesize);
     }
-    public Vector2 max(int tilesize)
+    public Vector2 maxTilePos(int tilesize)
     {
         return position + (size * 0.5f * tilesize);
     }
@@ -56,10 +56,10 @@ public class Room
     }
     public bool overlap(Room room, int tilesize)
     {
-        Vector2 myMax = max(tilesize);
-        Vector2 myMin = min(tilesize);
-        Vector2 RoomMax = room.max(tilesize);
-        Vector2 RoomMin = room.min(tilesize);
+        Vector2 myMax = maxTilePos(tilesize);
+        Vector2 myMin = minTilePos(tilesize);
+        Vector2 RoomMax = room.maxTilePos(tilesize);
+        Vector2 RoomMin = room.minTilePos(tilesize);
         
         if (myMax.x > RoomMin.x&& RoomMax.x > myMin.x && myMax.y > RoomMin.y && RoomMax.y> myMin.y)
         {
@@ -81,7 +81,7 @@ public class Room
     /// <returns>1 : 오른쪽 <br/>-1 : 왼쪽</returns>
     public int GetRoomRelativePosX(Room TargetRoom, int tilesize)
     {
-        if (min(tilesize).x > TargetRoom.max(tilesize).x)
+        if (minTilePos(tilesize).x > TargetRoom.maxTilePos(tilesize).x)
         {
             return -1;
         }
@@ -98,7 +98,7 @@ public class Room
     /// <returns>1 : 위쪽 <br/>-1 : 아레쪽</returns>
     public int GetRoomRelativePosY(Room TargetRoom, int tilesize)
     {
-        if (min(tilesize).y > TargetRoom.max(tilesize).y)
+        if (minTilePos(tilesize).y > TargetRoom.maxTilePos(tilesize).y)
         {
             return -1;
         }

@@ -8,6 +8,7 @@ using System.Collections;
 
 public class DungeonGenerator : MonoBehaviour
 {
+
     List<Room> pos = new List<Room>();
     /// <summary>
     /// tile size is (image pixel / pixel per unit )
@@ -52,8 +53,8 @@ public class DungeonGenerator : MonoBehaviour
         MapManager = new MapManager();
         
         //library code
-        //testRoomCreate(Vector2Int.one * 12, 6);
-        createRandomCase(5);
+        testRoomCreate(Vector2Int.one * 12, 10);
+        //createRandomCase(5);
         resetRoomPosition();
         spreateRoom();
         AddAllRoomToMapManager(ref pos,ref MapManager);
@@ -65,7 +66,7 @@ public class DungeonGenerator : MonoBehaviour
         PrimEdge = PrimResult;
         PrimRemoveEdge = removeEdge;
         List<Edge> ModifyEdge = AddRandomEdge(ref PrimEdge, ref removeEdge,out PrimEditedEdge);
-        CreateHallway(MapManager, ModifyEdge,mytilesize);
+        CreateHallway(MapManager, PrimResult,mytilesize);
     }
     void createRandomCase(int count)
     {
@@ -144,16 +145,16 @@ public class DungeonGenerator : MonoBehaviour
     {
         Room room;
         
-        room = new Room(mainpos, Vector2Int.one * 2);
+        room = new Room(mainpos, Vector2Int.one * 4);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2Int.up * space,Vector2Int.one * 2);
+        room = new Room(mainpos+new Vector2Int(16,0) + Vector2Int.up*space,Vector2Int.one * 6);
         pos.Add(room);
         
         room = new Room(mainpos + Vector2Int.right * space, Vector2Int.one * 4);
         pos.Add(room);
         
-        room = new Room(mainpos + Vector2Int.down * space, Vector2Int.one * 4);
+        room = new Room(mainpos + new Vector2Int(18, 0) + Vector2Int.down * space, Vector2Int.one * 6);
         pos.Add(room);
         
         room = new Room(mainpos + Vector2Int.left * space, Vector2Int.one * 2);
@@ -457,10 +458,10 @@ public class DungeonGenerator : MonoBehaviour
         {
             Room StartRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v1)];
             Room EndRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v2)];
-            Vector2 StartRoomMax=StartRoom.max(tilesize);
-            Vector2 EndRoomMax=EndRoom.max(tilesize);
-            Vector2 StartRoomMin=StartRoom.min(tilesize);
-            Vector2 EndRoomMin=EndRoom.min(tilesize);
+            Vector2 StartRoomMax=StartRoom.maxTilePos(tilesize);
+            Vector2 EndRoomMax=EndRoom.maxTilePos(tilesize);
+            Vector2 StartRoomMin=StartRoom.minTilePos(tilesize);
+            Vector2 EndRoomMin=EndRoom.minTilePos(tilesize);
             bool IsEndRoomRight = StartRoom.GetRoomRelativePosX(EndRoom, tilesize) > 0 ? true : false;
             bool IsEndRoomUp = StartRoom.GetRoomRelativePosY(EndRoom, tilesize) > 0 ? true : false;
             
@@ -470,13 +471,14 @@ public class DungeonGenerator : MonoBehaviour
 
                 int OverlapSizeMinX =(int)Mathf.Max(StartRoomMin.x, EndRoomMin.x);
                 int OverlapSIzeMaxX =(int)Mathf.Min(StartRoomMax.x, EndRoomMax.x);
-                int middlepoint = (int)(((OverlapSIzeMaxX - OverlapSizeMinX)/tilesize)*0.5);
-                //((x + 0.5 - (0.5 * size.x))*DungeonGenerator.mytilesize)
-                //print(middlepoint);
+                int middlepoint= (OverlapSIzeMaxX - OverlapSizeMinX) / tilesize;
+                middlepoint *= middlepoint < 0 ? -1 : 1;
+                middlepoint = middlepoint == 1 ? 1 : middlepoint / 2;
                 if (IsEndRoomUp)
                 {
                     for(int SearchingIndex = (int)(EndRoomMin.y - StartRoomMax.y); SearchingIndex > 0; SearchingIndex--)
                     {
+
                         if (MapManager.WorldMap.ContainsKey(new Vector2Int(middlepoint, (int)StartRoomMax.y + SearchingIndex)))
                         {
                             //print(new Vector2Int(middlepoint, (int)StartRoomMax.y + SearchingIndex));
@@ -491,7 +493,7 @@ public class DungeonGenerator : MonoBehaviour
             }
             else
             {
-                //서로 겹치는 부분이 없어 ㄱ자형으로 꺽어야함.
+                //서로 겹치는 부분이 없어 ㄱ자형으로 꺽어야함
                 
             }
         }
