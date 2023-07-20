@@ -454,6 +454,7 @@ public class DungeonGenerator : MonoBehaviour
     //Room move가 타일 사이즈에 반씩 움직이고 있음
     private void CreateHallway(MapManager map,List<Edge> PrimEdge, int tilesize)
     {
+        Astar pathfinder = new Astar(MapManager,mytilesize,999);
         for (int Roomindex=0;Roomindex<PrimEdge.Count;Roomindex++)
         {
             Room StartRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v1)];
@@ -465,37 +466,7 @@ public class DungeonGenerator : MonoBehaviour
             bool IsEndRoomRight = StartRoom.GetRoomRelativePosX(EndRoom, tilesize) > 0 ? true : false;
             bool IsEndRoomUp = StartRoom.GetRoomRelativePosY(EndRoom, tilesize) > 0 ? true : false;
             
-            //horizontal y로 이어질 수 있음.
-            if (StartRoomMax.x > EndRoomMin.x && EndRoomMax.x > StartRoomMin.x)
-            {
-
-                int OverlapSizeMinX =(int)Mathf.Max(StartRoomMin.x, EndRoomMin.x);
-                int OverlapSIzeMaxX =(int)Mathf.Min(StartRoomMax.x, EndRoomMax.x);
-                int middlepoint= (OverlapSIzeMaxX - OverlapSizeMinX) / tilesize;
-                middlepoint *= middlepoint < 0 ? -1 : 1;
-                middlepoint = middlepoint == 1 ? 1 : middlepoint / 2;
-                if (IsEndRoomUp)
-                {
-                    for(int SearchingIndex = (int)(EndRoomMin.y - StartRoomMax.y); SearchingIndex > 0; SearchingIndex--)
-                    {
-
-                        if (MapManager.WorldMap.ContainsKey(new Vector2Int(middlepoint, (int)StartRoomMax.y + SearchingIndex)))
-                        {
-                            //print(new Vector2Int(middlepoint, (int)StartRoomMax.y + SearchingIndex));
-                        }
-                    }
-                }
-            }
-            //vertical
-            else if (StartRoomMax.y > EndRoomMin.y && EndRoomMax.y > StartRoomMin.y)
-            {
-
-            }
-            else
-            {
-                //서로 겹치는 부분이 없어 ㄱ자형으로 꺽어야함
-                
-            }
+            
         }
         
     }
