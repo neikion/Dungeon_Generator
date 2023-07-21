@@ -32,7 +32,7 @@ public class Astar
     }
 
     //todo 대각선 검색 기능 삭제
-    public void A(Vector2Int Startpos, Vector2Int Endpos, List<TileNode> PathList,SearchType searchType)
+    public void getPath(Vector2Int Startpos, Vector2Int Endpos, List<TileNode> PathList)
     {
         if (Startpos.Equals(Endpos))
         {
@@ -62,7 +62,7 @@ public class Astar
 
             }
             FriendNodes.Clear();
-            FindNextTile(MainTile1, FriendNodes,searchType);
+            FindNextTile(MainTile1, FriendNodes,SearchType.CheckBlock);
 
             for (int i = 0; i < FriendNodes.Count; i++)
             {
@@ -117,6 +117,95 @@ public class Astar
 
         }
     }
+
+    public List<TileNode> getRoomPath(Vector2Int Startpos, Vector2Int RoomPos)
+    {
+        List<TileNode> PathList = new List<TileNode>();
+        if (Startpos.Equals(RoomPos))
+        {
+            if (PathList.Count < 1)
+            {
+                PathList.Add(MapManager.WorldMap[Startpos]);
+                return PathList;
+            }
+        }
+        //타일맵 x * y
+        EndTile = MapManager.WorldMap[RoomPos];
+        QlistClear();
+        MainTile1 = MapManager.WorldMap[Startpos];
+        MainTile1.DirCost = CostSerch(MainTile1.mypos, EndTile.mypos);
+        MainTile1.previous = null;
+
+        ///인접 타일
+        Openlist.push(MainTile1);
+
+        while (Openlist.Count > 0)
+        {
+            MainTile1 = Openlist.First;
+            if (!Closelist.Contains(MainTile1))
+            {
+                MainTile1.close = true;
+                Closelist.push(MainTile1);
+
+            }
+            FriendNodes.Clear();
+            FindNextTile(MainTile1, FriendNodes, SearchType.CheckOtherRoom);
+
+            for (int i = 0; i < FriendNodes.Count; i++)
+            {
+                SercingTile1 = FriendNodes[i];
+                if (SercingTile1.mypos.Equals(EndTile.mypos))
+                {
+
+                    SercingTile1.previous = MainTile1;
+                    PathSort(SercingTile1, PathList);
+                    //test
+                    //MoveTileList = PathList;
+                    Openlist.Clear();
+                    break;
+                }
+                CostSum = SercingTile1.PastCost + SercingTile1.OriginalCost;
+                if (!Openlist.Contains(SercingTile1))
+                {
+                    //print("보고 : " + MainTile1.mypos + "탐색대상 : " + SercingTile1.mypos);
+                    SercingTile1.previous = MainTile1;
+                    //SercingTile1.OriginalCost = CostTileSerch(MainTile1.mypos, SercingTile1.mypos);
+                    SercingTile1.DirCost = CostSerch(SercingTile1.mypos, EndTile.mypos);
+                    SercingTile1.Cost = SercingTile1.OriginalCost + SercingTile1.DirCost;
+                    SercingTile1.PastCost = MainTile1.PastCost + SercingTile1.OriginalCost;
+                    SercingTile1.TotalCost = MainTile1.PastCost + SercingTile1.Cost;
+                    Openlist.push(SercingTile1);
+                }
+                else if (SercingTile1.previous != null)
+                {
+                    if ((SercingTile1.PastCost + CostTileSerch(SercingTile1.mypos, MainTile1.mypos)) < (MainTile1.PastCost))
+                    {
+                        //print("보고 : " + MainTile1.mypos + "탐색대상 : " + SercingTile1.mypos + "경로 수정 \n" + MainTile1.PastCost + " -> " + (SercingTile1.PastCost + SercingTile1.OriginalCost));
+                        MainTile1.previous = SercingTile1;
+                        MainTile1.OriginalCost = CostTileSerch(SercingTile1.mypos, MainTile1.mypos); //SercingTile1.OriginalCost와 같을 꺼임.
+                        MainTile1.DirCost = CostSerch(MainTile1.mypos, EndTile.mypos);
+                        MainTile1.Cost = MainTile1.OriginalCost + MainTile1.DirCost;
+                        MainTile1.PastCost = SercingTile1.PastCost + MainTile1.OriginalCost;
+                        MainTile1.TotalCost = SercingTile1.PastCost + MainTile1.Cost;
+                        Openlist.sort();
+                    }
+                    else if (SercingTile1.PastCost > (MainTile1.PastCost + CostTileSerch(MainTile1.mypos, SercingTile1.mypos)))
+                    {
+                        //print("보고 : " + MainTile1.mypos + "탐색대상 : " + SercingTile1.mypos + "경로 이상 \n" + MainTile1.PastCost + " /  " + (SercingTile1.PastCost + SercingTile1.OriginalCost));
+                        SercingTile1.previous = MainTile1;
+                        SercingTile1.DirCost = CostSerch(SercingTile1.mypos, EndTile.mypos);
+                        SercingTile1.Cost = SercingTile1.OriginalCost + SercingTile1.DirCost;
+                        SercingTile1.PastCost = MainTile1.PastCost + SercingTile1.OriginalCost;
+                        SercingTile1.TotalCost = MainTile1.PastCost + SercingTile1.Cost;
+                        Openlist.sort();
+                    }
+                }
+            }
+
+        }
+        return null;
+    }
+
     //todo remove tilemap size
     private void PathSort(TileNode tile, List<TileNode> pathlistResult)
     {
@@ -194,6 +283,7 @@ public class Astar
         }
     }
     //todo need more edit
+    //     탐색 중인 노드가 찾는 방 안에 노드면 예외로 탐색할 리스트에 넣어야함
     public void CheckNextTileOtherRoom(ref Vector2Int FriendPos, List<TileNode> nextNodes)
     {
         if (MapManager.WorldMap.ContainsKey(FriendPos))

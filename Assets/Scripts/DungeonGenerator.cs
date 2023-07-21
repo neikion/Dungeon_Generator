@@ -4,7 +4,6 @@ using DelaunatorSharp;
 using DelaunatorSharp.Unity.Extensions;
 using Edge = bowyer.Edge;
 using bowyer;
-using System.Collections;
 
 public class DungeonGenerator : MonoBehaviour
 {
@@ -455,19 +454,39 @@ public class DungeonGenerator : MonoBehaviour
     private void CreateHallway(MapManager map,List<Edge> PrimEdge, int tilesize)
     {
         Astar pathfinder = new Astar(MapManager,mytilesize,999);
+        Vector2 StartRoomConnect= new Vector2();
         for (int Roomindex=0;Roomindex<PrimEdge.Count;Roomindex++)
         {
             Room StartRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v1)];
             Room EndRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v2)];
-            Vector2 StartRoomMax=StartRoom.maxTilePos(tilesize);
-            Vector2 EndRoomMax=EndRoom.maxTilePos(tilesize);
-            Vector2 StartRoomMin=StartRoom.minTilePos(tilesize);
-            Vector2 EndRoomMin=EndRoom.minTilePos(tilesize);
-            bool IsEndRoomRight = StartRoom.GetRoomRelativePosX(EndRoom, tilesize) > 0 ? true : false;
-            bool IsEndRoomUp = StartRoom.GetRoomRelativePosY(EndRoom, tilesize) > 0 ? true : false;
-            
-            
+            print($"기준 위치 {StartRoom.position} 찾을 방 위치 {EndRoom.position}");
+            Vector2 dir = StartRoom.getDirection(EndRoom);
+            print("찾는 방 방향"+dir);
+            if (dir.x > dir.y)
+            {
+                if (dir.x > 0)
+                {
+                    StartRoomConnect.x = StartRoom.size.x;
+                }
+                else
+                {
+                    StartRoomConnect.x=1;
+                }
+                StartRoomConnect.y = Random.Range(1, (int)StartRoom.size.y);
+            }
+            else
+            {
+                if (dir.y > 0)
+                {
+                    StartRoomConnect.y = StartRoom.size.y;
+                }
+                else
+                {
+                    StartRoomConnect.y = 1;
+                }
+                StartRoomConnect.x = Random.Range(1, (int)StartRoom.size.x);
+            }
+            print("탐색 시작 노드 인덱스"+StartRoomConnect);
         }
-        
     }
 }

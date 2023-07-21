@@ -16,6 +16,10 @@ public class Room
     /// </summary>
     public Vector2 size;
     public List<GameObject> gameObjects;
+    /// <summary>
+    /// min index is 1<br/>
+    /// max index is size
+    /// </summary>
     public Dictionary<Vector2Int, TileNode> Nodes;
     public int x
     {
@@ -49,7 +53,7 @@ public class Room
             for (int y = 0; y < size.y; y++)
             {
                 TileNode node = new TileNode((int)((x + 0.5 - (0.5 * size.x))*DungeonGenerator.mytilesize),(int)((y + 0.5 - (0.5 * size.y))*DungeonGenerator.mytilesize), TileType.Room);
-                Nodes.Add(new Vector2Int(x, y), node);
+                Nodes.Add(new Vector2Int(x+1, y+1), node);
             }
         }
 
@@ -67,44 +71,25 @@ public class Room
         }
         return false;
     }
+    public bool overlap(Vector2 position,int tilesize)
+    {
+        Vector2 myMax = maxTilePos(tilesize);
+        Vector2 myMin = minTilePos(tilesize);
+        if (myMax.x > position.x && position.x > myMin.x && myMax.y > position.y && position.y > myMin.y)
+        {
+            return true;
+        }
+        return false;
+    }
     public void Move(Vector2 move, int tilesize)
     {
         move *= tilesize;
         position +=new Vector2Int((int)move.x,(int)move.y);
         gameObjects[0].transform.position = new Vector3(position.x,position.y);
     }
-    /// <summary>
-    /// x축에서 호출한 인스턴스와 인자를 비교하여 호출한 인스턴스 기준으로 인자가 상대적으로 어떤 위치에 있는지 반환한다.<br/>
-    /// 정확히 겹칠 경우 1을 반환한다.
-    /// </summary>
-    /// <param name="TargetRoom">첫 인자와 위치를 비교할 대상</param>
-    /// <returns>1 : 오른쪽 <br/>-1 : 왼쪽</returns>
-    public int GetRoomRelativePosX(Room TargetRoom, int tilesize)
+    public Vector2 getDirection(Room TargetRoom)
     {
-        if (minTilePos(tilesize).x > TargetRoom.maxTilePos(tilesize).x)
-        {
-            return -1;
-        }
-        else
-        {
-            return 1;
-        }
-    }
-    /// <summary>
-    /// y축에서 호출한 인스턴스와 인자를 비교하여 호출한 인스턴스 기준으로 인자가 상대적으로 어떤 위치에 있는지 반환한다.<br/>
-    /// 정확히 겹칠 경우 1을 반환한다.
-    /// </summary>
-    /// <param name="TargetRoom">첫 인자와 위치를 비교할 대상</param>
-    /// <returns>1 : 위쪽 <br/>-1 : 아레쪽</returns>
-    public int GetRoomRelativePosY(Room TargetRoom, int tilesize)
-    {
-        if (minTilePos(tilesize).y > TargetRoom.maxTilePos(tilesize).y)
-        {
-            return -1;
-        }
-        else
-        {
-            return 1;
-        }
+        Vector2Int dir = TargetRoom.position - position;
+        return ((Vector2)dir).normalized;
     }
 }
