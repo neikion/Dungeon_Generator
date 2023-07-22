@@ -454,19 +454,19 @@ public class DungeonGenerator : MonoBehaviour
     private void CreateHallway(MapManager map,List<Edge> PrimEdge, int tilesize)
     {
         Astar pathfinder = new Astar(MapManager,mytilesize,999);
-        Vector2 StartRoomConnect= new Vector2();
-        for (int Roomindex=0;Roomindex<PrimEdge.Count;Roomindex++)
+        Vector2Int StartRoomConnect= new Vector2Int();
+        for (int Roomindex=0;Roomindex<1/*PrimEdge.Count*/;Roomindex++)
         {
             Room StartRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v1)];
             Room EndRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v2)];
-            print($"기준 위치 {StartRoom.position} 찾을 방 위치 {EndRoom.position}");
+            //print($"기준 위치 {StartRoom.position} 찾을 방 위치 {EndRoom.position}");
             Vector2 dir = StartRoom.getDirection(EndRoom);
-            print("찾는 방 방향"+dir);
+            //print("찾는 방 방향"+dir);
             if (dir.x > dir.y)
             {
                 if (dir.x > 0)
                 {
-                    StartRoomConnect.x = StartRoom.size.x;
+                    StartRoomConnect.x = (int)StartRoom.size.x;
                 }
                 else
                 {
@@ -478,7 +478,7 @@ public class DungeonGenerator : MonoBehaviour
             {
                 if (dir.y > 0)
                 {
-                    StartRoomConnect.y = StartRoom.size.y;
+                    StartRoomConnect.y = (int)StartRoom.size.y;
                 }
                 else
                 {
@@ -486,7 +486,11 @@ public class DungeonGenerator : MonoBehaviour
                 }
                 StartRoomConnect.x = Random.Range(1, (int)StartRoom.size.x);
             }
-            print("탐색 시작 노드 인덱스"+StartRoomConnect);
+            //print("탐색 시작 노드 인덱스"+StartRoomConnect);
+            foreach (TileNode nodes in pathfinder.getRoomPath(StartRoom.getWorldPosVec2int(StartRoomConnect), EndRoom.position))
+            {
+                print(nodes.mypos);
+            }
         }
     }
 }

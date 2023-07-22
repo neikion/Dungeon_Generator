@@ -20,7 +20,16 @@ public class MapManager
         RoomList.Add(room.position, room);
         foreach(TileNode tilenode in room.Nodes.Values)
         {
-            WorldMap.Add(new Vector2Int(room.position.x+tilenode.mypos.x,room.position.y + tilenode.mypos.y),tilenode);
+            AddTile(tilenode.intposition, tilenode);
         }
+    }
+    public bool AddTile(Vector2Int position, TileNode tile)
+    {
+        if (WorldMap.ContainsKey(position))
+        {
+            WorldMap.Add(position, tile);
+            return true;
+        }
+        return false;
     }
 }
