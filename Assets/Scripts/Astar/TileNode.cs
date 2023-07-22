@@ -35,7 +35,30 @@ public class TileNode : IComparable
     /// 총합 코스트
     /// </summary>
     public int TotalCost=0;
-    public Vector2Int mypos;
+    private Vector2 Position;
+    public Vector2 mypos
+    {
+        get { return Position; }
+        set 
+        { 
+            Position = value;
+            if (IntPosition != null)
+            {
+                IntPosition.x = (int)Position.x;
+                IntPosition.y = (int)Position.y;
+            }
+            else
+            {
+                Position = new Vector2(value.x, value.y);
+            }
+        }
+    }
+    private Vector2Int IntPosition;
+    public Vector2Int intposition
+    {
+        get { return IntPosition; }
+    }
+    public Vector2Int localpos;
     private TileNode previous1;
 
     public TileNode previous
@@ -55,16 +78,17 @@ public class TileNode : IComparable
         
     }
     public float tilecost=0;
-    public Vector2Int previousPos=new Vector2Int();
+    public Vector2 previousPos;
 
     public bool close = false;
 
-    public TileNode(int x, int y, TileType type)
+    public TileNode(Vector2 worldPosition, TileType type)
     {
-        mypos = new Vector2Int(x, y);
+        mypos = worldPosition;
         this.type = type;
         TilecostSerch();
-        //GameManager.GM.Map1.AllTile1.Add(mypos, this);
+        localpos = new Vector2Int(0, 0);
+        previousPos=new Vector2();
     }
     private void TilecostSerch()
     {

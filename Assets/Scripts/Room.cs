@@ -52,11 +52,17 @@ public class Room
         {
             for (int y = 0; y < size.y; y++)
             {
-                TileNode node = new TileNode((int)((x + 0.5 - (0.5 * size.x))*DungeonGenerator.mytilesize),(int)((y + 0.5 - (0.5 * size.y))*DungeonGenerator.mytilesize), TileType.Room);
+                Vector2 localPosition = new Vector2((x + 0.5f - (0.5f * size.x)) * DungeonGenerator.mytilesize, (y + 0.5f - (0.5f * size.y)) * DungeonGenerator.mytilesize);
+                TileNode node = new TileNode(localPosition+position,TileType.Room);
+                node.localpos = new Vector2Int((int)localPosition.x,(int)localPosition.y);
                 Nodes.Add(new Vector2Int(x+1, y+1), node);
             }
         }
-
+    }
+    public Vector2Int getWorldPosVec2int(Vector2Int tileindex)
+    {
+        Vector2 nodepos = Nodes[tileindex].mypos;
+        return new Vector2Int((int)nodepos.x, (int)nodepos.y);
     }
     public bool overlap(Room room, int tilesize)
     {
