@@ -59,11 +59,6 @@ public class Room
             }
         }
     }
-    public Vector2Int getWorldPosVec2int(Vector2Int tileindex)
-    {
-        Vector2 nodepos = Nodes[tileindex].mypos;
-        return new Vector2Int((int)nodepos.x, (int)nodepos.y);
-    }
     public bool overlap(Room room, int tilesize)
     {
         Vector2 myMax = maxTilePos(tilesize);

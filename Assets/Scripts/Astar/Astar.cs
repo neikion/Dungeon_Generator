@@ -24,15 +24,15 @@ public class Astar
     //openlist = 탐색해야할 타일
     //closelist = 탐색한 타일
     float CostSum = 0;
-    List<TileNode> EditRootList = new List<TileNode>(8);
+    private Dictionary<Vector2Int, TileNode> MyMap;
     MapManager MapManager;
     public Astar(MapManager Map, int TileSize, int TilemapSize)
     {
         MapManager = Map;
+        MyMap = new Dictionary<Vector2Int, TileNode>();
         this.TileSize = TileSize;
         this.TilemapSize = TilemapSize;
     }
-    //todo 대각선 검색 기능 삭제
     public List<TileNode> getRoomPath(Vector2Int Startpos, Vector2Int RoomPos)
     {
         Room EndRoom = MapManager.RoomList[RoomPos];
@@ -46,7 +46,6 @@ public class Astar
             }
         }
         //타일맵 x * y
-        Debug.Log(EndRoom.size);
         EndTile = MapManager.WorldMap[EndRoom.Nodes[new Vector2Int((int)EndRoom.size.x/2,(int)EndRoom.size.y/2)].intposition];
         QlistClear();
         MainTile1 = MapManager.WorldMap[Startpos];
@@ -73,10 +72,14 @@ public class Astar
                 {
                     node = MapManager.WorldMap[FriendPos];
                 }
+                else if (MyMap.ContainsKey(FriendPos))
+                {
+                    node = MyMap[FriendPos];
+                }
                 else
                 {
                     node = new TileNode(FriendPos, TileType.HallWay);
-                    MapManager.AddTile(node.intposition,node);
+                    MyMap.Add(node.intposition, node);
                 }
                 if (TileType.Room != node.type || EndRoom.overlap(node.mypos, TileSize))
                 {
@@ -195,7 +198,7 @@ public class Astar
     }
     public void CheckNextTileBlock(ref Vector2Int FriendPos, List<TileNode> nextNodes)
     {
-        if (MapManager.WorldMap.ContainsKey(FriendPos))
+        if (!MapManager.WorldMap.ContainsKey(FriendPos))
         {
             TileNode node = MapManager.WorldMap[FriendPos];
             if (TileType.Block != node.type)

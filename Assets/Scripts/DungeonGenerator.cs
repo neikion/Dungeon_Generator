@@ -8,7 +8,7 @@ using bowyer;
 public class DungeonGenerator : MonoBehaviour
 {
 
-    List<Room> pos = new List<Room>();
+    List<Room> rooms = new List<Room>();
     /// <summary>
     /// tile size is (image pixel / pixel per unit )
     /// </summary>
@@ -34,6 +34,10 @@ public class DungeonGenerator : MonoBehaviour
     bool ShowPrimEditedFlag = false;
     List<Edge> PrimEditedEdge=new List<Edge>();
 
+    [SerializeField]
+    bool ShowHallwayFlag = false;
+    List<List<TileNode>> HallwayList=new List<List<TileNode>>();
+
     //알고리즘 진행상황 확인 코드
     List<List<bowyer.Triangle>> ProcessLog = new List<List<bowyer.Triangle>>();
     [SerializeField]
@@ -56,7 +60,7 @@ public class DungeonGenerator : MonoBehaviour
         //createRandomCase(5);
         resetRoomPosition();
         spreateRoom();
-        AddAllRoomToMapManager(ref pos,ref MapManager);
+        AddAllRoomToMapManager(ref rooms,ref MapManager);
         //testMyLib();
         LibObj = setDelaunator();
         getEdge(LibObj, out List<Edge> edges);
@@ -76,15 +80,15 @@ public class DungeonGenerator : MonoBehaviour
             Room room = new Room(Vector2Int.zero, Vector2Int.one * ((i%5)+1) * 2);
             room.x = getPixelPoint(RandomPos.x, mytilesize);
             room.y = getPixelPoint(RandomPos.y, mytilesize);
-            pos.Add(room);
+            rooms.Add(room);
         }
     }
     void resetRoomPosition()
     {
-        for (int i = 0; i < pos.Count; i++)
+        for (int i = 0; i < rooms.Count; i++)
         {
-            pos[i].gameObjects = createRectangleRoom(pos[i].size, mytilesize);
-            pos[i].gameObjects[0].transform.position = new Vector2(pos[i].position.x, pos[i].position.y);
+            rooms[i].gameObjects = createRectangleRoom(rooms[i].size, mytilesize);
+            rooms[i].gameObjects[0].transform.position = new Vector2(rooms[i].position.x, rooms[i].position.y);
         }
     }
 
@@ -93,9 +97,9 @@ public class DungeonGenerator : MonoBehaviour
     void testMyLib()
     {
         ShowMyLibFlag = true;
-        for (int i = 0; i < pos.Count; i++)
+        for (int i = 0; i < rooms.Count; i++)
         {
-            bowyerLib.vertices.Add(new bowyer.Vertex(pos[i].x, pos[i].y));
+            bowyerLib.vertices.Add(new bowyer.Vertex(rooms[i].x, rooms[i].y));
         }
         bowyerLib.main((List<bowyer.Triangle> list) =>
         {
@@ -105,9 +109,9 @@ public class DungeonGenerator : MonoBehaviour
     Delaunator setDelaunator()
     {
         List<IPoint> pointlist = new List<IPoint>();
-        for (int i = 0; i < pos.Count; i++)
+        for (int i = 0; i < rooms.Count; i++)
         {
-            pointlist.Add(new Point(pos[i].x, pos[i].y));
+            pointlist.Add(new Point(rooms[i].x, rooms[i].y));
         }
         return new Delaunator(pointlist.ToArray());
     }
@@ -145,22 +149,22 @@ public class DungeonGenerator : MonoBehaviour
         Room room;
         
         room = new Room(mainpos, Vector2Int.one * 4);
-        pos.Add(room);
+        rooms.Add(room);
         
         room = new Room(mainpos+new Vector2Int(16,0) + Vector2Int.up*space,Vector2Int.one * 6);
-        pos.Add(room);
+        rooms.Add(room);
         
         room = new Room(mainpos + Vector2Int.right * space, Vector2Int.one * 4);
-        pos.Add(room);
+        rooms.Add(room);
         
         room = new Room(mainpos + new Vector2Int(18, 0) + Vector2Int.down * space, Vector2Int.one * 6);
-        pos.Add(room);
+        rooms.Add(room);
         
         room = new Room(mainpos + Vector2Int.left * space, Vector2Int.one * 2);
-        pos.Add(room);
+        rooms.Add(room);
         
         room = new Room(mainpos + Vector2Int.left * space * 2, Vector2Int.one * 4);
-        pos.Add(room);
+        rooms.Add(room);
         /*
         room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
         room.size.x = 2;
@@ -277,7 +281,17 @@ public class DungeonGenerator : MonoBehaviour
                 Gizmos.DrawLine(Vertex2vector(edge.v1), Vertex2vector(edge.v2));
             }
         }
-        
+        if (ShowHallwayFlag)
+        {
+            Gizmos.color = Color.yellow;
+            foreach(List<TileNode> tilelist in HallwayList)
+            {
+                for(int i = 0; i < tilelist.Count-1; i++)
+                {
+                    Gizmos.DrawLine(tilelist[i].mypos, tilelist[i+1].mypos);
+                }
+            }
+        }
     }
     void spreateRoom()
     {
@@ -287,18 +301,18 @@ public class DungeonGenerator : MonoBehaviour
         {
             i++;
             
-            if (i > pos.Count * pos.Count)
+            if (i > rooms.Count * rooms.Count)
             {
                 Debug.LogError("적당한 위치를 찾을 수 없음");
                 break;
             }
-            for (int current = 0; current < pos.Count; current++)
+            for (int current = 0; current < rooms.Count; current++)
             {
-                for (int other = 0; other < pos.Count; other++)
+                for (int other = 0; other < rooms.Count; other++)
                 {
-                    if (current == other || !pos[current].overlap(pos[other],mytilesize)) continue;
+                    if (current == other || !rooms[current].overlap(rooms[other],mytilesize)) continue;
 
-                    Vector2 direction = (pos[other].position - pos[current].position);
+                    Vector2 direction = (rooms[other].position - rooms[current].position);
                     direction=direction.normalized;
                     if (direction.Equals(Vector2.zero))
                     {
@@ -306,8 +320,8 @@ public class DungeonGenerator : MonoBehaviour
                     }
                     direction.x = Mathf.RoundToInt(direction.x);
                     direction.y = Mathf.RoundToInt(direction.y);
-                    pos[other].Move(direction, mytilesize);
-                    pos[current].Move(-direction, mytilesize);
+                    rooms[other].Move(direction, mytilesize);
+                    rooms[current].Move(-direction, mytilesize);
                     //print($"direction {direction} currnet {pos[current].position} other {pos[other].position}");
                 }
             }
@@ -329,15 +343,15 @@ public class DungeonGenerator : MonoBehaviour
     }
     bool isOverLappedAnyRoom()
     {
-        for(int current=0;current<pos.Count; current++)
+        for(int current=0;current<rooms.Count; current++)
         {
-            for(int other = 0; other < pos.Count; other++)
+            for(int other = 0; other < rooms.Count; other++)
             {
                 if (current == other)
                 {
                     continue;
                 }
-                if (pos[current].overlap(pos[other], mytilesize))
+                if (rooms[current].overlap(rooms[other], mytilesize))
                 {
                     //print($"overlap {pos[current].position} and {pos[other].position}");
                     return true;
@@ -455,7 +469,7 @@ public class DungeonGenerator : MonoBehaviour
     {
         Astar pathfinder = new Astar(MapManager,mytilesize,999);
         Vector2Int StartRoomConnect= new Vector2Int();
-        for (int Roomindex=0;Roomindex<1/*PrimEdge.Count*/;Roomindex++)
+        for (int Roomindex=0;Roomindex</*1*/PrimEdge.Count;Roomindex++)
         {
             Room StartRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v1)];
             Room EndRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v2)];
@@ -487,10 +501,17 @@ public class DungeonGenerator : MonoBehaviour
                 StartRoomConnect.x = Random.Range(1, (int)StartRoom.size.x);
             }
             //print("탐색 시작 노드 인덱스"+StartRoomConnect);
-            foreach (TileNode nodes in pathfinder.getRoomPath(StartRoom.getWorldPosVec2int(StartRoomConnect), EndRoom.position))
+            List<TileNode> path = pathfinder.getRoomPath(StartRoom.Nodes[StartRoomConnect].intposition, EndRoom.position);
+            if (path == null)
             {
-                print(nodes.mypos);
+                Debug.Log($"start {StartRoom.position} end {EndRoom.position} start tile index{StartRoomConnect} start position{StartRoom.Nodes[StartRoomConnect].intposition} dir{dir}");
             }
+            for(int i=1;i< path.Count-1;i++)
+            {
+                GameObject hallway = Instantiate(floorObject);
+                hallway.transform.position = path[i].mypos;
+            }
+            HallwayList.Add(path);
         }
     }
 }

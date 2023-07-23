@@ -25,7 +25,7 @@ public class MapManager
     }
     public bool AddTile(Vector2Int position, TileNode tile)
     {
-        if (WorldMap.ContainsKey(position))
+        if (!WorldMap.ContainsKey(position))
         {
             WorldMap.Add(position, tile);
             return true;
