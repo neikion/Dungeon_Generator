@@ -18,7 +18,6 @@ public class Astar
     //Dictionary<Vector3Int, TileNode> alltiles;
     List<TileNode> FriendNodes = new List<TileNode>(8);
     //private float OriginalCost=0, PastCost=0, EndTileDirCost=0;
-    private int TilemapSize = 0;
     private int TileSize = 1;
     TileNode EndTile = null, MainTile1 = null, SercingTile1 = null;
     //openlist = 탐색해야할 타일
@@ -26,12 +25,11 @@ public class Astar
     float CostSum = 0;
     private Dictionary<Vector2Int, TileNode> MyMap;
     MapManager MapManager;
-    public Astar(MapManager Map, int TileSize, int TilemapSize)
+    public Astar(MapManager Map, int TileSize)
     {
         MapManager = Map;
         MyMap = new Dictionary<Vector2Int, TileNode>();
         this.TileSize = TileSize;
-        this.TilemapSize = TilemapSize;
     }
     public List<TileNode> getRoomPath(Vector2Int Startpos, Vector2Int RoomPos)
     {
@@ -85,7 +83,14 @@ public class Astar
                 {
                     if (!Closelist.Contains(node))
                     {
-                        node.OriginalCost = 10;
+                        if(TileType.HallWay == node.type)
+                        {
+                            node.OriginalCost = 9;
+                        }
+                        else
+                        {
+                            node.OriginalCost = 10;
+                        }
                         nextNodes.Add(node);
                     }
                 }
@@ -97,7 +102,7 @@ public class Astar
                 if (EndRoom.overlap(SercingTile1.mypos,TileSize))
                 {
                     SercingTile1.previous = MainTile1;
-                    PathSort(SercingTile1, PathList);
+                    PathList=PathSort(SercingTile1);
                     Openlist.Clear();
                     return PathList;
                 }
@@ -143,33 +148,17 @@ public class Astar
         return null;
     }
 
-    //todo remove tilemap size
-    private void PathSort(TileNode tile, List<TileNode> pathlistResult)
+    private List<TileNode> PathSort(TileNode tile)
     {
+        List<TileNode> pathlistResult = new List<TileNode>();
         TileNode PathTile = tile;
-        pathlistResult.Clear();
-
-        for (int i = 0; i < TilemapSize; i++)
+        while (PathTile != null)
         {
             pathlistResult.Add(PathTile);
-            if (PathTile.previous == null)
-            {
-                break;
-
-            }
             PathTile = PathTile.previous;
-            
-
         }
         pathlistResult.Reverse();
-        if (pathlistResult.Count == 1)
-        {
-            Debug.LogWarning("이미 목적지 도착");
-        }
-        else if (pathlistResult.Count == TilemapSize)
-        {
-            Debug.LogError("길이 반복된다");
-        }
+        return pathlistResult;
     }
 
     

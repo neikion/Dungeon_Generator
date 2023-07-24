@@ -52,12 +52,9 @@ public class DungeonGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
         MapManager = new MapManager();
-        
-        //library code
-        testRoomCreate(Vector2Int.one * 12, 10);
-        //createRandomCase(5);
+        //testRoomCreate(Vector2Int.one * 12, mytilesize*4);
+        createRandomCase(50);
         resetRoomPosition();
         spreateRoom();
         AddAllRoomToMapManager(ref rooms,ref MapManager);
@@ -69,7 +66,7 @@ public class DungeonGenerator : MonoBehaviour
         PrimEdge = PrimResult;
         PrimRemoveEdge = removeEdge;
         List<Edge> ModifyEdge = AddRandomEdge(ref PrimEdge, ref removeEdge,out PrimEditedEdge);
-        CreateHallway(MapManager, PrimResult,mytilesize);
+        CreateHallway(MapManager, ModifyEdge,mytilesize);
     }
     void createRandomCase(int count)
     {
@@ -147,7 +144,7 @@ public class DungeonGenerator : MonoBehaviour
     void testRoomCreate(Vector2Int mainpos, int space)
     {
         Room room;
-        
+
         room = new Room(mainpos, Vector2Int.one * 4);
         rooms.Add(room);
         
@@ -165,30 +162,22 @@ public class DungeonGenerator : MonoBehaviour
         
         room = new Room(mainpos + Vector2Int.left * space * 2, Vector2Int.one * 4);
         rooms.Add(room);
-        /*
-        room = new Room(mainpos + (Vector2.right * space) + (Vector2.down * space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
+        
+        room = new Room(mainpos + (Vector2Int.right * space) + (Vector2Int.down * space),Vector2Int.one*2);
+        rooms.Add(room);
         
         
-        room = new Room(mainpos + Vector2.one * space);
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
+        room = new Room(mainpos + Vector2Int.one * space, Vector2Int.one * 2);
+        rooms.Add(room);
         
-        room = new Room(mainpos - Vector2.one * space);
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
+        room = new Room(mainpos - Vector2Int.one * space, Vector2Int.one * 2);
+        rooms.Add(room);
         
-        room = new Room(mainpos + (Vector2.left * space) + (Vector2.up * space));
-        room.size.x = 2;
-        room.size.y = 2;
-        pos.Add(room);
-        */
+        room = new Room(mainpos + (Vector2Int.left * space) + (Vector2Int.up * space), Vector2Int.one * 2);
+        rooms.Add(room);
+        
 
-        
+
     }
     
     private void Update()
@@ -310,7 +299,7 @@ public class DungeonGenerator : MonoBehaviour
             {
                 for (int other = 0; other < rooms.Count; other++)
                 {
-                    if (current == other || !rooms[current].overlap(rooms[other],mytilesize)) continue;
+                    if (current == other || !rooms[current].overlapBolder(rooms[other],mytilesize)) continue;
 
                     Vector2 direction = (rooms[other].position - rooms[current].position);
                     direction=direction.normalized;
@@ -351,7 +340,7 @@ public class DungeonGenerator : MonoBehaviour
                 {
                     continue;
                 }
-                if (rooms[current].overlap(rooms[other], mytilesize))
+                if (rooms[current].overlapBolder(rooms[other], mytilesize))
                 {
                     //print($"overlap {pos[current].position} and {pos[other].position}");
                     return true;
@@ -467,16 +456,19 @@ public class DungeonGenerator : MonoBehaviour
     //Room move가 타일 사이즈에 반씩 움직이고 있음
     private void CreateHallway(MapManager map,List<Edge> PrimEdge, int tilesize)
     {
-        Astar pathfinder = new Astar(MapManager,mytilesize,999);
+        Astar pathfinder = new Astar(MapManager,mytilesize);
         Vector2Int StartRoomConnect= new Vector2Int();
         for (int Roomindex=0;Roomindex</*1*/PrimEdge.Count;Roomindex++)
         {
             Room StartRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v1)];
             Room EndRoom = map.RoomList[Vertex2vector(PrimEdge[Roomindex].v2)];
-            //print($"기준 위치 {StartRoom.position} 찾을 방 위치 {EndRoom.position}");
             Vector2 dir = StartRoom.getDirection(EndRoom);
-            //print("찾는 방 방향"+dir);
-            if (dir.x > dir.y)
+            // note
+            // 아레 로직의 사용 불가 상황
+            // 서로의 방이 붙어 있는 경우
+            // 1. 붙어 있는 방이 찾을려는 방향의 앞에 위치하여 타일을 가리거나
+            // 2. 방이 붙어있음으로써 다른 방으로 가는 길을 막는 경우
+            if (System.Math.Abs(dir.x) > System.Math.Abs(dir.y))
             {
                 if (dir.x > 0)
                 {
@@ -487,6 +479,7 @@ public class DungeonGenerator : MonoBehaviour
                     StartRoomConnect.x=1;
                 }
                 StartRoomConnect.y = Random.Range(1, (int)StartRoom.size.y);
+                
             }
             else
             {
@@ -499,8 +492,8 @@ public class DungeonGenerator : MonoBehaviour
                     StartRoomConnect.y = 1;
                 }
                 StartRoomConnect.x = Random.Range(1, (int)StartRoom.size.x);
+
             }
-            //print("탐색 시작 노드 인덱스"+StartRoomConnect);
             List<TileNode> path = pathfinder.getRoomPath(StartRoom.Nodes[StartRoomConnect].intposition, EndRoom.position);
             if (path == null)
             {

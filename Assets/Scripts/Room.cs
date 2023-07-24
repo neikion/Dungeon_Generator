@@ -15,6 +15,10 @@ public class Room
     /// Size Must be Even.(2%n==0)
     /// </summary>
     public Vector2 size;
+    /// <summary>
+    /// find node index
+    /// ((size.y-1)*(findX))+findY
+    /// </summary>
     public List<GameObject> gameObjects;
     /// <summary>
     /// min index is 1<br/>
@@ -59,13 +63,28 @@ public class Room
             }
         }
     }
+    public bool overlapBolder(Room room, int tilesize)
+    {
+        Vector2 myMax = maxTilePos(tilesize);
+        Vector2 myMin = minTilePos(tilesize);
+        Vector2 RoomMax = room.maxTilePos(tilesize);
+        Vector2 RoomMin = room.minTilePos(tilesize);
+        myMax += Vector2.one * tilesize;
+        myMin -= Vector2.one * tilesize;
+        RoomMax += Vector2.one * tilesize;
+        RoomMin -= Vector2.one * tilesize;
+        if (myMax.x > RoomMin.x && RoomMax.x > myMin.x && myMax.y > RoomMin.y && RoomMax.y > myMin.y)
+        {
+            return true;
+        }
+        return false;
+    }
     public bool overlap(Room room, int tilesize)
     {
         Vector2 myMax = maxTilePos(tilesize);
         Vector2 myMin = minTilePos(tilesize);
         Vector2 RoomMax = room.maxTilePos(tilesize);
         Vector2 RoomMin = room.minTilePos(tilesize);
-        
         if (myMax.x > RoomMin.x&& RoomMax.x > myMin.x && myMax.y > RoomMin.y && RoomMax.y> myMin.y)
         {
             return true;
@@ -87,6 +106,14 @@ public class Room
         move *= tilesize;
         position +=new Vector2Int((int)move.x,(int)move.y);
         gameObjects[0].transform.position = new Vector3(position.x,position.y);
+        resetNodesPosition();
+    }
+    public void resetNodesPosition()
+    {
+        foreach(TileNode tilenode in Nodes.Values)
+        {
+            tilenode.mypos = tilenode.localpos + position;
+        }
     }
     public Vector2 getDirection(Room TargetRoom)
     {
