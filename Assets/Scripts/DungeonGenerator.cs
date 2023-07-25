@@ -54,11 +54,11 @@ public class DungeonGenerator : MonoBehaviour
     {
         MapManager = new MapManager();
         //testRoomCreate(Vector2Int.one * 12, mytilesize*4);
-        createRandomCase(50);
+        createRandomCase(100);
         resetRoomPosition();
         spreateRoom();
         AddAllRoomToMapManager(ref rooms,ref MapManager);
-        //testMyLib();
+        testMyLib();
         LibObj = setDelaunator();
         getEdge(LibObj, out List<Edge> edges);
         startGraphSetting(edges,out Dictionary<Vertex,GraphNode> nodeset);
@@ -93,7 +93,6 @@ public class DungeonGenerator : MonoBehaviour
     
     void testMyLib()
     {
-        ShowMyLibFlag = true;
         for (int i = 0; i < rooms.Count; i++)
         {
             bowyerLib.vertices.Add(new bowyer.Vertex(rooms[i].x, rooms[i].y));
@@ -140,6 +139,11 @@ public class DungeonGenerator : MonoBehaviour
             edges.Push(new Edge(new Vertex(edge.P.X, edge.P.Y), new Vertex(edge.Q.X, edge.Q.Y)));
         }
     }
+    //todo imp
+    void getEdge(bowyer_watson bowyer, out List<Edge> edges)
+    {
+        edges = bowyer.getEdge();
+    }
 
     void testRoomCreate(Vector2Int mainpos, int space)
     {
@@ -159,14 +163,14 @@ public class DungeonGenerator : MonoBehaviour
         
         room = new Room(mainpos + Vector2Int.left * space, Vector2Int.one * 2);
         rooms.Add(room);
-        
+        /*
         room = new Room(mainpos + Vector2Int.left * space * 2, Vector2Int.one * 4);
         rooms.Add(room);
         
         room = new Room(mainpos + (Vector2Int.right * space) + (Vector2Int.down * space),Vector2Int.one*2);
         rooms.Add(room);
         
-        
+        /*
         room = new Room(mainpos + Vector2Int.one * space, Vector2Int.one * 2);
         rooms.Add(room);
         
@@ -175,7 +179,7 @@ public class DungeonGenerator : MonoBehaviour
         
         room = new Room(mainpos + (Vector2Int.left * space) + (Vector2Int.up * space), Vector2Int.one * 2);
         rooms.Add(room);
-        
+        */
 
 
     }

@@ -21,6 +21,10 @@ namespace bowyer
             */
             return (v1.Equals(other.v1) && v2.Equals(other.v2)) || (v1.Equals(other.v2) && v2.Equals(other.v1));
         }
+        public override int GetHashCode()
+        {
+            return v1.GetHashCode() ^ v2.GetHashCode();
+        }
         public Edge()
         {
 

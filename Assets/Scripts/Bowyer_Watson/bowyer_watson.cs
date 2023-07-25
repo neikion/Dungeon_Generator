@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace bowyer
 {
-
     //만약 삼각분할이 제대로 되지 않을 경우 슈퍼 트라이앵글을 생성하는 점의 위치를 더 크게 조정해 줄 것.
     public class bowyer_watson
     {
@@ -51,14 +50,28 @@ namespace bowyer
                 }
             }
         }
-
-        void testEqualEdge()
+        public List<Edge> getEdge()
         {
-            Edge t1, t2;
-            t1 = new Edge(new Vertex(54, -2), new Vertex(-2, -2));
-            t2 = new Edge(new Vertex(-2, 54), new Vertex(54, -2));
-            Debug.Log(t1.Equals(t2));
-            return;
+            Dictionary<Edge, Edge> checkdic = new Dictionary<Edge, Edge>();
+            for (int i = 0; i < triangles.Count; i++)
+            {
+                Edge checkedge = new Edge(triangles[i].v1, triangles[i].v2);
+                if (!checkdic.ContainsKey(checkedge))
+                {
+                    checkdic.Add(checkedge, checkedge);
+                }
+                checkedge = new Edge(triangles[i].v1, triangles[i].v3);
+                if (!checkdic.ContainsKey(checkedge))
+                {
+                    checkdic.Add(checkedge, checkedge);
+                }
+                checkedge = new Edge(triangles[i].v2, triangles[i].v3);
+                if (!checkdic.ContainsKey(checkedge))
+                {
+                    checkdic.Add(checkedge, checkedge);
+                }
+            }
+            return checkdic.Values.ToList();
         }
         public bool checkTouchSuperObject(Triangle super, Triangle child)
         {
@@ -169,6 +182,11 @@ namespace bowyer
 
             }
         }
+        /// <summary>
+        /// 한번도 겹치지 않는 선들만 가져온다. 겹쳤던 선들은 결과에서 제외한다.
+        /// </summary>
+        /// <param name="edges"></param>
+        /// <returns></returns>
         List<Edge> uniqueEdges(List<Edge> edges)
         {
             List<Edge> results=new List<Edge>();
