@@ -53,10 +53,10 @@ public class DungeonGenerator : MonoBehaviour
     void Start()
     {
         MapManager = new MapManager();
-        //testRoomCreate(Vector2Int.one * 12, mytilesize*4);
+        testRoomCreate(Vector2Int.one * 12, mytilesize*4);
         createRandomCase(100);
         resetRoomPosition();
-        spreateRoom();
+        separateRoom();
         AddAllRoomToMapManager(ref rooms,ref MapManager);
         testMyLib();
         LibObj = setDelaunator();
@@ -286,19 +286,10 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
     }
-    void spreateRoom()
+    void separateRoom()
     {
-        int i = 0;
-        List<Vector2> beforepos=new List<Vector2>();
         while(isOverLappedAnyRoom())
         {
-            i++;
-            
-            if (i > rooms.Count * rooms.Count)
-            {
-                Debug.LogError("적당한 위치를 찾을 수 없음");
-                break;
-            }
             for (int current = 0; current < rooms.Count; current++)
             {
                 for (int other = 0; other < rooms.Count; other++)
@@ -311,13 +302,17 @@ public class DungeonGenerator : MonoBehaviour
                     {
                         direction = changeOverlapPos();
                     }
-                    direction.x = Mathf.RoundToInt(direction.x);
-                    direction.y = Mathf.RoundToInt(direction.y);
-                    rooms[other].Move(direction, mytilesize);
-                    rooms[current].Move(-direction, mytilesize);
-                    //print($"direction {direction} currnet {pos[current].position} other {pos[other].position}");
+                    int x = Mathf.RoundToInt(direction.x);
+                    int y = Mathf.RoundToInt(direction.y);
+                    rooms[other].TempMove(x,y, mytilesize);
+                    rooms[current].TempMove(-x,-y, mytilesize);
+                    //print($"direction {direction} currnet {rooms[current].position} other {rooms[other].position}");
                 }
             }
+        }
+        for(int index=0; index < rooms.Count; index++)
+        {
+            rooms[index].complateTempMove();
         }
     }
     private Vector2 changeOverlapPos()

@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 
 public class Room
@@ -35,13 +32,17 @@ public class Room
         get { return position.y; }
         set { position.y = value; }
     }
-    public Vector2 minTilePos(int tilesize)
+    private Vector2 MinTilePos;
+    private Vector2 MaxTilePos;
+    public Vector2 minTilePos
     {
-        return position - (size * 0.5f * tilesize);
+        get { return MinTilePos; }
+        //return position - (size * 0.5f * tilesize);
     }
-    public Vector2 maxTilePos(int tilesize)
+    public Vector2 maxTilePos
     {
-        return position + (size * 0.5f * tilesize);
+        get{ return MaxTilePos; }
+        //return position + (size * 0.5f * tilesize);
     }
     public Room()
     {
@@ -62,39 +63,51 @@ public class Room
                 Nodes.Add(new Vector2Int(x+1, y+1), node);
             }
         }
+        MinTilePos = position - (size * 0.5f * DungeonGenerator.mytilesize);
+        MaxTilePos = position + (size * 0.5f * DungeonGenerator.mytilesize);
     }
     public bool overlapBolder(Room room, int tilesize)
     {
-        Vector2 myMax = maxTilePos(tilesize);
-        Vector2 myMin = minTilePos(tilesize);
-        Vector2 RoomMax = room.maxTilePos(tilesize);
-        Vector2 RoomMin = room.minTilePos(tilesize);
-        myMax += Vector2.one * tilesize;
-        myMin -= Vector2.one * tilesize;
-        RoomMax += Vector2.one * tilesize;
-        RoomMin -= Vector2.one * tilesize;
+        Vector2 myMax = MaxTilePos;
+        Vector2 myMin = MinTilePos;
+        Vector2 RoomMax = room.MaxTilePos;
+        Vector2 RoomMin = room.MinTilePos;
+
+        //unity Vector2 +,-,*,/(and other) operator return new vector
+        myMax.x += tilesize;
+        myMax.y += tilesize;
+
+        myMin.x -= tilesize;
+        myMin.y -= tilesize;
+
+        RoomMax.x += tilesize;
+        RoomMax.y += tilesize;
+
+        RoomMin.x -= tilesize;
+        RoomMin.y -= tilesize;
         if (myMax.x > RoomMin.x && RoomMax.x > myMin.x && myMax.y > RoomMin.y && RoomMax.y > myMin.y)
         {
             return true;
         }
         return false;
+
     }
-    public bool overlap(Room room, int tilesize)
+    public bool overlap(Room room)
     {
-        Vector2 myMax = maxTilePos(tilesize);
-        Vector2 myMin = minTilePos(tilesize);
-        Vector2 RoomMax = room.maxTilePos(tilesize);
-        Vector2 RoomMin = room.minTilePos(tilesize);
+        Vector2 myMax = MaxTilePos;
+        Vector2 myMin = MinTilePos;
+        Vector2 RoomMax = room.MaxTilePos;
+        Vector2 RoomMin = room.MinTilePos;
         if (myMax.x > RoomMin.x&& RoomMax.x > myMin.x && myMax.y > RoomMin.y && RoomMax.y> myMin.y)
         {
             return true;
         }
         return false;
     }
-    public bool overlap(Vector2 position,int tilesize)
+    public bool overlap(Vector2 position)
     {
-        Vector2 myMax = maxTilePos(tilesize);
-        Vector2 myMin = minTilePos(tilesize);
+        Vector2 myMax = MaxTilePos;
+        Vector2 myMin = MinTilePos;
         if (myMax.x > position.x && position.x > myMin.x && myMax.y > position.y && position.y > myMin.y)
         {
             return true;
@@ -103,12 +116,37 @@ public class Room
     }
     public void Move(Vector2 move, int tilesize)
     {
-        move *= tilesize;
-        position +=new Vector2Int((int)move.x,(int)move.y);
-        gameObjects[0].transform.position = new Vector3(position.x,position.y);
+        move.x = move.x * tilesize;
+        move.y = move.y * tilesize;
+        position.x += (int)move.x;
+        position.y += (int)move.y;
         resetNodesPosition();
+        gameObjects[0].transform.position = new Vector3(position.x, position.y);
+        MinTilePos = position - (size * 0.5f * tilesize);
+        MaxTilePos = position + (size * 0.5f * tilesize);
     }
-    public void resetNodesPosition()
+    /// <summary>
+    /// 실제 위치 변경없이 데이터만 바꾼다.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="tilesize"></param>
+    public void TempMove(int x, int y, int tilesize)
+    {
+        position.x += x * tilesize;
+        position.y += y * tilesize;
+        MinTilePos.x = position.x - (size.x * 0.5f * tilesize);
+        MinTilePos.y = position.y - (size.y * 0.5f * tilesize);
+        MaxTilePos.x = position.x + (size.x * 0.5f * tilesize);
+        MaxTilePos.y = position.y + (size.y * 0.5f * tilesize);
+    }
+    public void complateTempMove()
+    {
+        gameObjects[0].transform.position = new Vector3(position.x, position.y);
+        resetNodesPosition();
+        
+    }
+    private void resetNodesPosition()
     {
         foreach(TileNode tilenode in Nodes.Values)
         {

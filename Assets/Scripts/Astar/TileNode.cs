@@ -36,6 +36,23 @@ public class TileNode : IComparable
     /// </summary>
     public int TotalCost=0;
     private Vector2 Position;
+    public float myposX
+    {
+        get { return mypos.x; }
+        set { 
+            Position.x = value;
+            IntPosition.x = (int)value;
+        }
+    }
+    public float myposY
+    {
+        get { return mypos.y; }
+        set
+        {
+            Position.y = value;
+            IntPosition.y = (int)value;
+        }
+    }
     public Vector2 mypos
     {
         get { return Position; }

@@ -35,7 +35,7 @@ public class Astar
     {
         Room EndRoom = MapManager.RoomList[RoomPos];
         List<TileNode> PathList = new List<TileNode>();
-        if (EndRoom.overlap(Startpos,TileSize))
+        if (EndRoom.overlap(Startpos))
         {
             if (PathList.Count < 1)
             {
@@ -79,7 +79,7 @@ public class Astar
                     node = new TileNode(FriendPos, TileType.HallWay);
                     MyMap.Add(node.intposition, node);
                 }
-                if (TileType.Room != node.type || EndRoom.overlap(node.mypos, TileSize))
+                if (TileType.Room != node.type || EndRoom.overlap(node.mypos))
                 {
                     if (!Closelist.Contains(node))
                     {
@@ -99,7 +99,7 @@ public class Astar
             for (int i = 0; i < FriendNodes.Count; i++)
             {
                 SercingTile1 = FriendNodes[i];
-                if (EndRoom.overlap(SercingTile1.mypos,TileSize))
+                if (EndRoom.overlap(SercingTile1.mypos))
                 {
                     SercingTile1.previous = MainTile1;
                     PathList=PathSort(SercingTile1);
