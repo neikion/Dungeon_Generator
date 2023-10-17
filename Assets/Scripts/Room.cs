@@ -116,8 +116,8 @@ public class Room
     }
     public void Move(Vector2 move, int tilesize)
     {
-        move.x = move.x * tilesize;
-        move.y = move.y * tilesize;
+        move.x *= tilesize;
+        move.y *= tilesize;
         position.x += (int)move.x;
         position.y += (int)move.y;
         resetNodesPosition();
@@ -148,9 +148,15 @@ public class Room
     }
     private void resetNodesPosition()
     {
-        foreach(TileNode tilenode in Nodes.Values)
+        Vector2Int vector = new Vector2Int();
+        for (int i = 1; i <= size.x; i++)
         {
-            tilenode.mypos = tilenode.localpos + position;
+            for (int j = 1; j <= size.y; j++)
+            {
+                vector.x = i;
+                vector.y = j;
+                Nodes[vector].mypos = Nodes[vector].localpos + position;
+            }
         }
     }
     public Vector2 getDirection(Room TargetRoom)
